@@ -1,15 +1,15 @@
 open Lexer
-open Parser
+(* open Parser *)
 open ErrorHandler
 open Lexing
 
-(*
+
 let rec lexAllBuf lexbuf =
 let lex = Lexer.read lexbuf in
 match lex with
 | EOF -> ()
 | _ -> print_token lex; print_string " ";print_newline (); lexAllBuf lexbuf
-*)
+
 
 let compile file =
 print_string ("File "^file^" is being treated!\n");
@@ -17,8 +17,8 @@ try
 	let input_file = open_in file in
 	let lexbuf = Lexing.from_channel input_file in
 	try
-		Parser.prog Lexer.read lexbuf;
-		(*lexAllBuf lexbuf;*)
+		(* Parser.prog Lexer.read lexbuf; *)
+		lexAllBuf lexbuf;
 		print_string "SUCCESS";
 		print_newline();
 		

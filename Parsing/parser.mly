@@ -1,0 +1,58 @@
+(* Literals *)
+%token <bool> BOOLEANLIT
+%token <float> FLOATLIT
+%token <int> INTEGERLIT
+%token <string> STRINGLIT
+
+(* Infix Operators*)
+%token PLUS MINUS TIMES
+%token DIV AND OR XOR
+%token MOD INF SUP
+%token ISEQUAL ISNOTEQUAL
+%token SUPEQUAL INFEQUAL
+%token CONDOR CONDAND COND
+%token LSHIFT RSHIFT USHIFT
+%token NONE AS ASYNC AWAIT DEF DEL ELIF GLOBAL NONLOCAL PASS RAISE LAMBDA IS YIELD EXCEPT FROM IN NOT WITH POWER
+%token FLOORDIV BITEAND BITEOR BITEXOR BITENEGATION FUNCMETADATA FLOORDIVEQUAL AROBASQUAL POWEREQUAL DOLLAR
+%token QUESTIONMARK SHARP DOUBLEQUOTE SIMPLEQUOTE BACKSLASH
+(* Prefix Operators*)
+%token INCR DECR EXCL TILDE
+(* Assignment Operators*)
+%token EQUAL PLUSEQUAL MINUSEQUAL TIMESEQUAL
+%token DIVEQUAL ANDEQUAL OREQUAL XOREQUAL
+%token MODEQUAL LSHIFTEQUAL RSHIFTEQUAL USHIFTEQUAL
+(* Delimitors*)
+%token POINT SEMICOLON COMMA COLON LBRACE
+%token RBRACE LPAREN RPAREN LBRACK RBRACK
+(* Modifiers*)
+%token ABSTRACT PRIVATE PROTECTED PUBLIC
+%token STATIC STRICTFP SYNCHRONIZED
+%token VOLATILE TRANSIENT NATIVE FINAL
+(* Basic Types*)
+%token BYTE SHORT CHAR INT
+%token LONG FLOAT DOUBLE BOOLEAN
+(* Other Keywords*)
+%token ASSERT BREAK CASE CATCH CLASS
+%token CONTINUE DO DEFAULT ELSE ENUM
+%token FINALLY FOR IF IMPLEMENTS
+%token INSTANCEOF INTERFACE NEW PACKAGE
+%token SUPER SWITCH THIS THROW RETURN EXTENDS
+%token AROBAS THROWS TRY VOID WHILE IMPORT
+(* Special Tokens *)
+%token EOF
+%token <string> IDENT
+%token NULL
+%token <string> COMMENT
+
+%start main             /* the entry point */
+%type <unit> main
+%%
+main:
+    expr EOF                {  }
+;
+expr:
+    INT                     {  }
+  | LPAREN expr RPAREN      {  }
+  | expr PLUS expr          {  }
+  | expr MINUS expr         {  }
+  | expr TIMES expr         {  }

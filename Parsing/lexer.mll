@@ -29,7 +29,7 @@ let _ = List.iter (fun (kwd, tok) -> Hashtbl.add keyword_table kwd tok)
 	"if",			IF;
 	"import",		IMPORT;
 	"in", 			IN;
-	"is", 			IS
+	"is", 			IS;
 	"lambda", 		LAMBDA;
 	"nonlocal", 	NONLOCAL;
 	"not", 			NOT;
@@ -51,30 +51,31 @@ let lowercase							= ['a'-'z']
 let uppercase							= ['A'-'Z']
 let newline   							= '\r' | '\n' | "\r\n"
 let letter							    = (lowercase | uppercase)
-let shortStringchar						= [^newline "'" '"' "\"]*
-let stringEscapeSeq 					= [^"\"]*
+let shortStringchar						= [^'\r' '\n' ''' '"' '\\']*
+let shortstring 						= ''' shortStringchar ''' | '"'  shortStringchar '"'
+let stringEscapeSeq						= [^'\\']*
 let nonzerodigit						= ['1'-'9']
 let digit								= '0' | nonzerodigit
-let decidegit							= nonzerodigit (["_"] digit)* | '0' (["_"] '0')*
-let digitPart 							= digit (["_"] digit)*
-let exponent 							= ('e' | 'E') ['+' | '-']? degit
-let fraction 							= '.' degitPart
-let pointFloat							= [degitPart] fraction | digitPart '.'
-let exponentFloat 						= (degitPart | pointFloat) exponent
+let decinteger							= nonzerodigit (['_'] digit)* | '0' (['_'] '0')*
+let digitPart 							= digit (['_'] digit)*
+let exponent 							= ('e' | 'E') ('+' | '-')? digit
+let fraction 							= '.' digitPart
+let pointFloat							=  digitPart fraction | digitPart '.'
+let exponentFloat 						= (digitPart | pointFloat) exponent
 let floatNumber 						= pointFloat | exponentFloat
 let imagNumber 							= (floatNumber | digitPart) ('j' | 'J')
 
 let ident     						= (letter | '_') ( letter | digit | '_')*
 
+
+
 rule read = parse
 | white											{ read lexbuf }
 | newline										{ Lexing.new_line lexbuf; read lexbuf }
-| integerLiteral as i				{ INTEGERLIT (int_of_string i) }
-| floatingPointLiteral as f	{ FLOATLIT (float_of_string f) }
-| stringLiteral as s				{ STRINGLIT s}
+| decinteger as i				{ INTEGERLIT (int_of_string i) }
+| floatNumber as f	{ FLOATLIT (float_of_string f) }
+| shortstring as s				{ STRINGLIT s}
 | ident as id								{  try Hashtbl.find keyword_table id with Not_found -> IDENT id }
-| onelinecomment { Lexing.new_line lexbuf; read lexbuf }
-| multilinecomment { Lexing.new_line lexbuf; read lexbuf }
 | "+"                { PLUS }
 | "-"                { MINUS }
 | "*"                { TIMES }
@@ -110,7 +111,7 @@ rule read = parse
 | "+="               { PLUSEQUAL }
 | "-="               { MINUSEQUAL }
 | "*="               { TIMESEQUAL }
-| "/="               { DIVEQUAL }
+| "/="               { DIVEQUAL } 
 | "//="              { FLOORDIVEQUAL }
 | "%="               { MODEQUAL }
 | "@="               { AROBASQUAL }
@@ -119,13 +120,14 @@ rule read = parse
 | "^="               { XOREQUAL }
 | ">>="              { RSHIFTEQUAL }
 | "<<="              { LSHIFTEQUAL }
-| "**="              { POWERQUAL }
+| "**="              { POWEREQUAL }
 | "'"              	 { SIMPLEQUOTE }
 | '"'              	 { DOUBLEQUOTE }
 | "#"              	 { SHARP }
 | "\""               { BACKSLASH }
 | "$"              	 { DOLLAR }
 | "?"              	 { QUESTIONMARK }
+| eof                { EOF }
 {
 
 let print_token = function
