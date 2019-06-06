@@ -1,5 +1,5 @@
 open Lexer
-(* open Parser *)
+open Parser
 open ErrorHandler
 open Lexing
 
@@ -8,7 +8,8 @@ let rec lexAllBuf lexbuf =
 let lex = Lexer.read lexbuf in
 match lex with
 | EOF -> ()
-| _ -> print_token lex; print_string " ";print_newline (); lexAllBuf lexbuf
+(* | newline ->  print_string " "; print_newline (); lexAllBuf lexbuf *)
+| _ -> print_token lex; print_string " "; lexAllBuf lexbuf
 
 
 let compile file =

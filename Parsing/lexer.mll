@@ -46,13 +46,16 @@ let _ = List.iter (fun (kwd, tok) -> Hashtbl.add keyword_table kwd tok)
 ]
 
 }
-let white     							= [' ' '\t']+
+let white     							= [' ']+
+let tab 								= ['	' '\t']
 let lowercase							= ['a'-'z']
 let uppercase							= ['A'-'Z']
-let newline   							= '\r' | '\n' | "\r\n"
+let newline   							= ('\r' | '\n' | "\r\n")+
 let letter							    = (lowercase | uppercase)
-let shortStringchar						= [^'\r' '\n' ''' '"' '\\']*
+let shortStringchar						= [^'\r' '\n' ''' '"' '\\']+
 let shortstring 						= ''' shortStringchar ''' | '"'  shortStringchar '"'
+let longStringText 						= (shortStringchar | newline | tab)+
+let longstring 							= ''' ''' ''' longStringText ''' ''' ''' | '"' '"' '"' longStringText '"' '"' '"'  
 let stringEscapeSeq						= [^'\\']*
 let nonzerodigit						= ['1'-'9']
 let digit								= '0' | nonzerodigit
@@ -65,16 +68,24 @@ let exponentFloat 						= (digitPart | pointFloat) exponent
 let floatNumber 						= pointFloat | exponentFloat
 let imagNumber 							= (floatNumber | digitPart) ('j' | 'J')
 
-let ident     						= (letter | '_') ( letter | digit | '_')*
+let ident     							= (letter | '_') ( letter | digit | '_')*
+let args 								= '*'ident
+let kwargs 								= "**"ident
+let commentLine 						= '#' (kwargs | args | ident | white)+
 
 
 
 rule read = parse
 | white											{ read lexbuf }
-| newline										{ Lexing.new_line lexbuf; read lexbuf }
+| args as a										{ ARGS (a)}
+| kwargs as k 									{ KWARGS (k) }
+| commentLine as c								{ COMMENTLINE (c) }
+| tab 										{ TAB }
+| newline										{ NEWLINE }
 | decinteger as i				{ INTEGERLIT (int_of_string i) }
 | floatNumber as f	{ FLOATLIT (float_of_string f) }
 | shortstring as s				{ STRINGLIT s}
+| longstring as t				{ STRINGLONG t}
 | ident as id								{  try Hashtbl.find keyword_table id with Not_found -> IDENT id }
 | "+"                { PLUS }
 | "-"                { MINUS }
@@ -128,113 +139,116 @@ rule read = parse
 | "$"              	 { DOLLAR }
 | "?"              	 { QUESTIONMARK }
 | eof                { EOF }
+
 {
-
 let print_token = function
-| EOF                -> print_string "eof"
-| IDENT id           -> print_string "(ident : "; print_string id; print_string ")"
-| FLOATLIT f         -> print_string "(float : "; print_float f; print_string ")"
-| INTEGERLIT i			 -> print_string "(integer :"; print_int i; print_string ")"
-| BOOLEANLIT b       -> ( match b with
-| true							 -> print_string "(boolean : true)"
-| false							 -> print_string "(boolean : false)")
-| STRINGLIT s				 -> print_string("(string : "^s^")")
-| COMMENT c					 -> ()
-| NULL               -> print_string "null"
-| ABSTRACT           -> print_string "abstract"
-| ASSERT             -> print_string "assert"
-| BOOLEAN            -> print_string "boolean"
-| BREAK              -> print_string "break"
-| BYTE               -> print_string "byte"
-| CASE               -> print_string "case"
-| CATCH              -> print_string "catch"
-| CHAR               -> print_string "char"
-| CLASS              -> print_string "class"
-| CONTINUE           -> print_string "continue"
-| DEFAULT            -> print_string "default"
-| DO                 -> print_string "do"
-| DOUBLE             -> print_string "double"
-| ELSE               -> print_string "else"
-| ENUM               -> print_string "enum"
-| EXTENDS            -> print_string "extends"
-| FINAL              -> print_string "final"
-| FINALLY            -> print_string "finally"
-| FLOAT              -> print_string "float"
-| FOR                -> print_string "for"
-| IF                 -> print_string "if"
-| IMPLEMENTS         -> print_string "implements"
-| IMPORT             -> print_string "import"
-| INSTANCEOF         -> print_string "instanceof"
-| INT                -> print_string "int"
-| INTERFACE          -> print_string "interface"
-| LONG               -> print_string "long"
-| NATIVE             -> print_string "native"
-| NEW                -> print_string "new"
-| PACKAGE            -> print_string "package"
-| PRIVATE            -> print_string "private"
-| PROTECTED          -> print_string "protected"
-| PUBLIC             -> print_string "public"
-| RETURN             -> print_string "return"
-| SHORT              -> print_string "short"
-| STATIC             -> print_string "static"
-| STRICTFP           -> print_string "strictfp"
-| SUPER              -> print_string "super"
-| SWITCH             -> print_string "switch"
-| SYNCHRONIZED       -> print_string "synchronized"
-| THIS               -> print_string "this"
-| THROW              -> print_string "throw"
-| THROWS             -> print_string "throws"
-| TRANSIENT          -> print_string "transient"
-| TRY                -> print_string "try"
-| VOID               -> print_string "void"
-| VOLATILE           -> print_string "volatile"
-| WHILE              -> print_string "while"
-| PLUS               -> print_string "plus"
-| MINUS              -> print_string "minus"
-| TIMES              -> print_string "times"
-| DIV                -> print_string "div"
-| AND                -> print_string "and"
-| OR                 -> print_string "or"
-| XOR                -> print_string "xor"
-| MOD                -> print_string "mod"
-| EQUAL              -> print_string "equal"
-| INF                -> print_string "inf"
-| SUP                -> print_string "sup"
-| CONDOR             -> print_string "condor"
-| CONDAND            -> print_string "condand"
-| INCR               -> print_string "incr"
-| DECR               -> print_string "decr"
-| COND               -> print_string "cond"
-| EXCL               -> print_string "excl"
-| TILDE              -> print_string "tilde"
-| AROBAS              -> print_string "arobas"
-| ISEQUAL            -> print_string "isequal"
-| ISNOTEQUAL         -> print_string "isnotequal"
-| PLUSEQUAL          -> print_string "plusequal"
-| MINUSEQUAL         -> print_string "minusequal"
-| TIMESEQUAL         -> print_string "timesequal"
-| DIVEQUAL           -> print_string "divequal"
-| ANDEQUAL           -> print_string "andequal"
-| OREQUAL            -> print_string "orequal"
-| XOREQUAL           -> print_string "xorequal"
-| MODEQUAL           -> print_string "modequal"
-| INFEQUAL           -> print_string "infequal"
-| SUPEQUAL           -> print_string "supequal"
-| LSHIFT             -> print_string "lshift"
-| RSHIFT             -> print_string "rshift"
-| LSHIFTEQUAL        -> print_string "lshiftequal"
-| RSHIFTEQUAL        -> print_string "rshiftequal"
-| USHIFT             -> print_string "ushift"
-| USHIFTEQUAL        -> print_string "ushiftequal"
-| POINT              -> print_string "point"
-| SEMICOLON          -> print_string "semicolon"
-| COMMA              -> print_string "comma"
-| COLON              -> print_string "colon"
-| LBRACE             -> print_string "lbrace"
-| RBRACE             -> print_string "rbrace"
-| LPAREN             -> print_string "lparen"
-| RPAREN             -> print_string "rparen"
-| LBRACK             -> print_string "lbrack"
-| RBRACK             -> print_string "rbrack"
-
+| EOF                		-> print_string "<eof>"
+| NEWLINE 					-> print_newline () 
+| IDENT id           		-> print_string "(ident : "; print_string id; print_string ")"
+| KWARGS k 					-> print_string "(kwargs :"; print_string k; print_string ")"
+| ARGS a 					-> print_string "(args :"; print_string a; print_string ")"
+| COMMENTLINE c 			-> print_string "(comment :"; print_string c; print_string ")"
+| FLOATLIT f         		-> print_string "(float : "; print_float f; print_string ")"
+| INTEGERLIT i 				-> print_string "(integer :"; print_int i; print_string ")"
+| BOOLEANLIT b       		-> ( match b with
+	| true 					-> print_string "(boolean : true)"
+	| false 				-> print_string "(boolean : false)")
+| STRINGLIT s				-> print_string("(string : "^s^")")
+| STRINGLONG t				-> print_string("(text : "^t^")")
+| POWER			     		-> print_string "< power >"
+| AS 						-> print_string "< as >"
+| ASYNC 					-> print_string "< async >"
+| DEL 						-> print_string "< del >"
+| ELIF 						-> print_string "< elif >"
+| EXCEPT 					-> print_string "< except >"
+| FROM 						-> print_string "< from >"
+| GLOBAL 					-> print_string "< global >"
+| IN 						-> print_string "< in >"
+| IS 						-> print_string "< is >"
+| LAMBDA 					-> print_string "< lambda >"
+| NONLOCAL 					-> print_string "< nonlocal >"
+| NOT 						-> print_string "< not >"
+| PASS 						-> print_string "< pass >"
+| RAISE 					-> print_string "< raise >"
+| WITH 						-> print_string "< with >"
+| YIELD 					-> print_string "< yield >"
+| AWAIT 					-> print_string "< await >"
+| FLOORDIV			     	-> print_string "< floordiv >"
+| BITEAND				    -> print_string "< biteand >"
+| BITEOR				    -> print_string "< biteor >"
+| BITEXOR				    -> print_string "< bitexor >"
+| BITENEGATION			    -> print_string "< bitenegation >"
+| FUNCMETADATA			    -> print_string "< funcmetadata >"
+| FLOORDIVEQUAL			    -> print_string "< floordivequal >"
+| AROBASQUAL			    -> print_string "< arobasqual >"
+| POWEREQUAL			    -> print_string "< powerequal >"
+| SIMPLEQUOTE			    -> print_string "< simplequote >"
+| DOUBLEQUOTE			    -> print_string "< doublequote >"
+| SHARP			     		-> print_string "< sharp >"
+| BACKSLASH			     	-> print_string "< backslash >"
+| DOLLAR			     	-> print_string "< dollar >"
+| QUESTIONMARK			    -> print_string "< questionmark >"
+| NONE               		-> print_string "< none >"
+| ASSERT             		-> print_string "< assert >"
+| BOOLEAN            		-> print_string "< boolean >"
+| BREAK              		-> print_string "< break >"
+| CLASS              		-> print_string "< class >"
+| DEF              	 		-> print_string "< def >"
+| CONTINUE           		-> print_string "< continue >"
+| ELSE               		-> print_string "< else >"
+| FINALLY            		-> print_string "< finally >"
+| FLOAT              		-> print_string "< float >"
+| FOR                		-> print_string "< for >"
+| IF                 		-> print_string "< if >"
+| IMPORT             		-> print_string "< import >"
+| RETURN             		-> print_string "< return >"
+| SUPER              		-> print_string "< super >"
+| TRY                		-> print_string "< try >"
+| WHILE              		-> print_string "< while >"
+| PLUS               		-> print_string "< plus >"
+| MINUS              		-> print_string "< minus >"
+| TIMES              		-> print_string "< times >"
+| DIV                		-> print_string "< div >"
+| AND                		-> print_string "< and >"
+| OR                 		-> print_string "< or >"
+| XOR                		-> print_string "< xor >"
+| MOD                		-> print_string "< mod >"
+| EQUAL              		-> print_string "< equal >"
+| INF                		-> print_string "< inf >"
+| SUP                		-> print_string "< sup >"
+| CONDOR             		-> print_string "< condor >"
+| CONDAND            		-> print_string "< condand >"
+| INCR               		-> print_string "< incr >"
+| DECR               		-> print_string "< decr >"
+| COND               		-> print_string "< cond >"
+| AROBAS             		-> print_string "< arobas >"
+| ISEQUAL            		-> print_string "< isequal >"
+| ISNOTEQUAL         		-> print_string "< isnotequal >"
+| PLUSEQUAL          		-> print_string "< plusequal >"
+| MINUSEQUAL         		-> print_string "< minusequal >"
+| TIMESEQUAL         		-> print_string "< timesequal >"
+| DIVEQUAL           		-> print_string "< divequal >"
+| ANDEQUAL           		-> print_string "< andequal >"
+| OREQUAL            		-> print_string "< orequal >"
+| XOREQUAL           		-> print_string "< xorequal >"
+| MODEQUAL           		-> print_string "< modequal >"
+| INFEQUAL           		-> print_string "< infequal >"
+| SUPEQUAL           		-> print_string "< supequal >"
+| LSHIFT             		-> print_string "< lshift >"
+| RSHIFT             		-> print_string "< rshift >"
+| LSHIFTEQUAL        		-> print_string "< lshiftequal >"
+| RSHIFTEQUAL        		-> print_string "< rshiftequal >"
+| USHIFT             		-> print_string "< ushift >"
+| USHIFTEQUAL        		-> print_string "< ushiftequal >"
+| POINT              		-> print_string "< point >"
+| SEMICOLON          		-> print_string "< semicolon >"
+| COMMA              		-> print_string "< comma >"
+| COLON              		-> print_string "< colon >"
+| LBRACE             		-> print_string "< lbrace >"
+| RBRACE             		-> print_string "< rbrace >"
+| LPAREN             		-> print_string "< lparen >"
+| RPAREN             		-> print_string "< rparen >"
+| LBRACK             		-> print_string "< lbrack >"
+| RBRACK             		-> print_string "< rbrack >"
+| TAB  			 		-> print_string "tab"
 }

@@ -3,6 +3,10 @@
 %token <float> FLOATLIT
 %token <int> INTEGERLIT
 %token <string> STRINGLIT
+%token <string> COMMENTLINE
+%token <string> KWARGS
+%token <string> ARGS
+%token <string> STRINGLONG
 
 (* Infix Operators*)
 %token PLUS MINUS TIMES
@@ -40,19 +44,15 @@
 %token AROBAS THROWS TRY VOID WHILE IMPORT
 (* Special Tokens *)
 %token EOF
-%token <string> IDENT
-%token NULL
-%token <string> COMMENT
+%token NEWLINE
+%token TAB
 
-%start main             /* the entry point */
-%type <unit> main
+%token <string> IDENT
+
+%start prog
+%type <unit> prog
 %%
-main:
-    expr EOF                {  }
-;
-expr:
-    INT                     {  }
-  | LPAREN expr RPAREN      {  }
-  | expr PLUS expr          {  }
-  | expr MINUS expr         {  }
-  | expr TIMES expr         {  }
+prog:
+    EOF                {  }
+
+
