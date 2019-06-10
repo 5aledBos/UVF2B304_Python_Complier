@@ -185,7 +185,102 @@ comma_test_opt:
 	| comma_test_opt {}
 	| COMMA test {}
 	
+compound_stmt:
+	| if_stmt {}
+	| while_stmt {}
+	| for_stmt {}
+	| try_stmt {}
+	| with_stmt {}
+	| funcdef {}
+	| classdef {}
+	| decorated {}
+	| async_stmt {}
 
+async_stmt:
+	| ASYNC with_for_funcdef_stmt
+
+with_for_funcdef_stmt:
+	| funcdef
+	| with_stmt
+	| for_stmt
+
+if_stmt:
+	| IF test COLON suite elif_stmt_opt ELSE COLON suite
+
+elif_stmt_opt:
+	| {}
+	| ELIF test COLON suite
+
+while_stmt:
+	| WHILE test COLON suite ELSE COLON suite
+
+for_stmt:
+	| FOR exprlist IN testlist COLON suite ELSE COLON suite
+	
+white_stmt:
+	| WITH with_item comma_with_item_opt COLON suite
+	
+comma_with_item_opt:
+	| {}
+	| COMMA with_item
+	
+with_item:
+	| test AS expr_stmt
+
+suite:
+	| simple_stmt
+	| NEWLINE IDENT stmt DEDENT
+	
+test:
+	| or_test IF or_test ELSE test
+	| lambdef
+	
+test_nocond: 
+	| or_test
+	| lambdef_nocond
+
+lambdef:
+	| LAMBDA varargslist COLON test
+
+lambdef_nocond:
+	| LAMBDA varargslist COLON test_nocond {}
+
+or_test:
+	| and_test or_and_test_opt {}
+
+or_and_test_opt:
+	| {}
+	| OR and_test {}
+
+and_test:
+	| not_test and_not_test_opt {}
+
+and_not_test_opt:
+	| {}
+	| AND not_test {}
+	
+not_test:
+	| NOT not_test {}
+	| comparison {}
+	
+comparison:
+	| expr comp_op_expr_opt {}
+
+comp_op_expr_opt:
+	| {}
+	| comp_op expr {}
+
+comp_op:
+	| INF {}
+	| SUP {}
+	| ISEQUAL {}
+	| SUPEQUAL {}
+	| INFEQUAL {}
+	| ISNOTEQUAL {}
+	| IN {}
+	| NOT IN {}
+	| IS {}
+	| IS NOT {}
 	
 	
 yield_expr:
