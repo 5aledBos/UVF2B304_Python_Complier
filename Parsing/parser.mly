@@ -56,6 +56,19 @@
 prog:
 	| single_input EOF {}
 	
+decorator:
+	| AROBAS dotted_name arglist_with_parent_opt NEWLINE {}
+
+arglist_with_parent_opt:
+	| {}
+	| LPAREN arglist_opt RPAREN {}
+arglist_opt:
+	| {}
+	| arglist {}
+	
+decorator:
+	| 
+	
 single_input:
 	| NEWLINE simple_stmt compound_stmt NEWLINE {}
 	
