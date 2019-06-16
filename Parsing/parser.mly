@@ -54,9 +54,10 @@
 %%
 
 prog:
-	| single_input EOF {}
-	
-decorator:
+	| file_input {}
+
+
+(*decorator:
 	| AROBAS dotted_name LPAREN arglist RPAREN NEWLINE {}
 
 decorator_opt:
@@ -64,33 +65,239 @@ decorator_opt:
 	| decorator {}
 	
 decorators:
-	| decorator decorator_opt {}
-	
-single_input:
-	| NEWLINE simple_stmt compound_stmt NEWLINE {}
+	| decorator decorator_opt {}*)
+file_input:
+	| new_line_stmt* EOF {}
+
+new_line_stmt:
+	| NEWLINE {}
+	| stmt {}
 	
 stmt:
 	| simple_stmt {}
-	| compound_stmt {}
+	(* | compound_stmt {} *)
 	
 simple_stmt:
-	| small_stmt small_stmt_opt SEMICOLON NEWLINE {}
+	| small_stmt {}
+	(*| small_stmt small_stmt_opt* SEMICOLON? NEWLINE {}*)
 	
 small_stmt_opt:
-	| {}   
-	| small_stmt_opt {}
+	(* | small_stmt_opt {} *)
 	| SEMICOLON small_stmt NEWLINE {}
 	
 small_stmt :
-	| expr_stmt
-	| del_stmt {}
+	| expr_stmt {}
+(* 	| del_stmt {}
 	| pass_stmt {}
 	| flow_stmt {}
 	| import_stmt {}
 	| global_stmt {}
 	| nonlocal_stmt {}
 	| assert_stmt {}
+ *)
 
+expr_stmt:
+	| testlist_star_expr super_expr_stmt {} (*check grammar definition *)
+
+super_expr_stmt:
+	| annassign {}
+(*	| annassign yield_or_testlist {}
+	| assign_stmt {}*)
+
+annassign:
+	| COLON test annassign_opt? {}
+
+annassign_opt:
+	| EQUAL test {}
+
+testlist_star_expr:
+	| test_or_star_expr test_or_star_expr_opts comma_opt {}
+
+
+
+test_or_star_expr:
+	| test {}
+	(*| star_expr {}*)
+
+test_or_star_expr_opts:
+	| {}
+	| test_or_star_expr_opt test_or_star_expr_opts {}
+
+
+test_or_star_expr_opt:
+	| COMMA test_or_star_expr {}
+
+
+star_expr:
+	| TIMES expr {}
+
+expr:
+	| xor_expr xor_expr_opt* {}
+
+xor_expr_opt:
+	| BITEOR xor_expr {}
+
+xor_expr:
+	| and_expr and_expr_opt* {}
+
+and_expr_opt:
+	| BITEXOR and_expr {}
+
+and_expr:
+	| shift_expr shift_expr_opt* {}
+
+shift_expr_opt:
+	| BITEAND shift_expr {}
+
+shift_expr:
+	| arith_expr arith_expr_opt* {}
+
+arith_expr_opt:
+	| LSHIFT arith_expr {}
+	| RSHIFT arith_expr {}
+
+arith_expr:
+	| term term_opt* {}
+
+term_opt:
+	| PLUS term {}
+	| MINUS term {}
+
+term:
+	| factor factor_opt* {}
+
+factor_opt:
+	| TIMES factor {}
+	| AROBAS factor {}
+	| DIV factor {}
+	| FLOORDIV factor {}
+	| MOD factor {}
+
+factor:
+	(*| operator_factor {}*)
+	| power {}
+
+operator_factor:
+	| PLUS factor {}
+	| MINUS factor {}
+	| BITENEGATION factor {}
+
+power:
+	| atom_expr power_factor? {}
+
+power_factor:
+	| POWER factor {}
+
+atom_expr:
+	| AWAIT? atom trailer* {}
+
+atom:
+	(* | LPAREN yield_or_testlist_expr? RPAREN {} *)
+	(* | LBRACK testlist_comp? RBRACK {} *)
+	(* | LBRACE dictorsetmaker RBRACE {} *)
+	| IDENT {}
+	| INTEGERLIT {}
+	| STRINGLIT+ {}
+	| POINT POINT POINT {}
+	| NONE {}
+	| BOOLEANLIT {}
+
+yield_or_testlist_expr:
+	| yield_expr {}
+(*	| testlist_comp {}*)
+
+yield_expr:
+	| YIELD yield_arg? {}
+
+yield_arg:
+	| FROM test {}
+	(*| testlist {}*)
+    
+
+
+trailer:
+	| LPAREN arglist? RPAREN {}
+	(*| LBRACK subscriptlist? RBRACK {}*)
+	| POINT IDENT {}
+
+arglist:
+	| argument argument_opts comma_opt {}
+	(* | argument argument_opt* COMMA? {} *)
+
+comma_opt:
+	| {}
+	| COMMA {}
+
+argument_opts:
+	| {}
+	| argument_opt argument_opts {}
+
+argument_opt:
+	| COMMA argument {}
+
+argument:
+	(*| test comp_for? {}*) 
+	| test EQUAL test {}
+	| POWER test {}
+	| TIMES test {}
+
+test:
+	| or_test or_test_conditional {}
+	(*| lambdef {}*)
+	
+or_test_conditional:
+	| {}
+	| IF or_test ELSE test {}
+
+(*
+test_nocond: 
+	| or_test
+	| lambdef_nocond
+
+lambdef:
+	| LAMBDA varargslist COLON test
+
+lambdef_nocond:
+	| LAMBDA varargslist COLON test_nocond {}
+*)
+or_test:
+	| and_test or_and_test_opt* {}
+
+or_and_test_opt:
+	| OR and_test {}
+
+and_test:
+	| not_test and_not_test_opt* {}
+
+and_not_test_opt:
+	| AND not_test {}
+	
+not_test:
+	(*| NOT not_test {}*)
+	| comparison {}
+	
+comparison:
+	| expr comp_op_expr_opt* {}
+
+comp_op_expr_opt:
+	| comp_op expr {}
+
+comp_op:
+	| INF {}
+	| SUP {}
+	| ISEQUAL {}
+	| SUPEQUAL {}
+	| INFEQUAL {}
+	| ISNOTEQUAL {}
+	| IN {}
+	| NOT IN {}
+	| IS {}
+	| IS NOT {}
+	
+
+
+
+(* 
 del_stmt:
 	| DEL exprlist {}
 
@@ -107,7 +314,8 @@ flow_stmt:
 break_stmt:
 	| BREAK {}
 
-continue_stmt:
+continue_stmt:import_stmt
+import_stmt
 	| CONTINUE {}
 	
 return_stmt:
@@ -241,64 +449,4 @@ suite:
 	| simple_stmt
 	| NEWLINE IDENT stmt DEDENT
 	
-test:
-	| or_test IF or_test ELSE test
-	| lambdef
-	
-test_nocond: 
-	| or_test
-	| lambdef_nocond
-
-lambdef:
-	| LAMBDA varargslist COLON test
-
-lambdef_nocond:
-	| LAMBDA varargslist COLON test_nocond {}
-
-or_test:
-	| and_test or_and_test_opt {}
-
-or_and_test_opt:
-	| {}
-	| OR and_test {}
-
-and_test:
-	| not_test and_not_test_opt {}
-
-and_not_test_opt:
-	| {}
-	| AND not_test {}
-	
-not_test:
-	| NOT not_test {}
-	| comparison {}
-	
-comparison:
-	| expr comp_op_expr_opt {}
-
-comp_op_expr_opt:
-	| {}
-	| comp_op expr {}
-
-comp_op:
-	| INF {}
-	| SUP {}
-	| ISEQUAL {}
-	| SUPEQUAL {}
-	| INFEQUAL {}
-	| ISNOTEQUAL {}
-	| IN {}
-	| NOT IN {}
-	| IS {}
-	| IS NOT {}
-	
-	
-yield_expr:
-	| YIELD yield_arg
-
-yield_arg:
-	| FROM test
-	| testlist
-    
-
-
+*)

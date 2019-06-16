@@ -4,7 +4,7 @@ from module import SuperClass
 
 class LexerTestClassBasicKeywords(SuperClass):
 	def __init__(self, *args, **kwargs):
-		self.int_val = 0
+		self.int_val = 789
 		self.short_string_val = 'text - '
 		self.long_string_val = """
 			Long Text
@@ -25,4 +25,6 @@ class LexerTestClassBasicKeywords(SuperClass):
 			with open('path/to/file.txt', 'w') as fd:
 				fd.write(self.long_string_val)
 		assert type(self.int_val) == int
+
+await a1(a=2, *args, **args) + a2() * b.test + 225 - "test" 
 

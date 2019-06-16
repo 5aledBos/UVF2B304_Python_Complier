@@ -8,16 +8,18 @@
 #       file_input is a module or sequence of commands read from an input file;
 #       eval_input is the input for the eval() functions.
 # NB: compound_stmt in single_input is followed by extra NEWLINE!
+
 single_input: NEWLINE | simple_stmt | compound_stmt NEWLINE
 file_input: (NEWLINE | stmt)* ENDMARKER
 eval_input: testlist NEWLINE* ENDMARKER
 
+
 decorator: '@' dotted_name [ '(' [arglist] ')' ] NEWLINE
 decorators: decorator+
 decorated: decorators (classdef | funcdef | async_funcdef)
-
 async_funcdef: 'async' funcdef
 funcdef: 'def' NAME parameters ['->' test] ':' suite
+
 
 parameters: '(' [typedargslist] ')'
 typedargslist: (tfpdef ['=' test] (',' tfpdef ['=' test])* [',' [

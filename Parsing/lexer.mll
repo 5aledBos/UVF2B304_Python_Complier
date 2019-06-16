@@ -20,7 +20,7 @@ let _ = List.iter (fun (kwd, tok) -> Hashtbl.add keyword_table kwd tok)
  	"def", 			DEF;
 	"del", 			DEL;
 	"elif", 		ELIF;
-	"else ",		ELSE;
+	"else",			ELSE;
 	"except", 		EXCEPT;
 	"finally", 		FINALLY;
 	"for",			FOR;
@@ -59,7 +59,7 @@ let longstring 							= ''' ''' ''' longStringText ''' ''' ''' | '"' '"' '"' lon
 let stringEscapeSeq						= [^'\\']*
 let nonzerodigit						= ['1'-'9']
 let digit								= '0' | nonzerodigit
-let decinteger							= nonzerodigit (['_'] digit)* | '0' (['_'] '0')*
+let decinteger							= nonzerodigit (['_'] | digit)* | '0' (['_'] '0')*
 let digitPart 							= digit (['_'] digit)*
 let exponent 							= ('e' | 'E') ('+' | '-')? digit
 let fraction 							= '.' digitPart
@@ -69,16 +69,12 @@ let floatNumber 						= pointFloat | exponentFloat
 let imagNumber 							= (floatNumber | digitPart) ('j' | 'J')
 
 let ident     							= (letter | '_') ( letter | digit | '_')*
-let args 								= '*'ident
-let kwargs 								= "**"ident
-let commentLine 						= '#' (kwargs | args | ident | white)+
+let commentLine 						= '#' (ident | white)+
 
 
 
 rule read = parse
 | white											{ read lexbuf }
-| args as a										{ ARGS (a)}
-| kwargs as k 									{ KWARGS (k) }
 | commentLine as c								{ COMMENTLINE (c) }
 | tab 										{ TAB }
 | newline										{ NEWLINE }
@@ -145,8 +141,6 @@ let print_token = function
 | EOF                		-> print_string "<eof>"
 | NEWLINE 					-> print_newline () 
 | IDENT id           		-> print_string "(ident : "; print_string id; print_string ")"
-| KWARGS k 					-> print_string "(kwargs :"; print_string k; print_string ")"
-| ARGS a 					-> print_string "(args :"; print_string a; print_string ")"
 | COMMENTLINE c 			-> print_string "(comment :"; print_string c; print_string ")"
 | FLOATLIT f         		-> print_string "(float : "; print_float f; print_string ")"
 | INTEGERLIT i 				-> print_string "(integer :"; print_int i; print_string ")"
