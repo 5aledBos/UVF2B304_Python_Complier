@@ -78,31 +78,94 @@ stmt:
 	(* | compound_stmt {} *)
 	
 simple_stmt:
-	| small_stmt {}
-	(*| small_stmt small_stmt_opt* SEMICOLON? NEWLINE {}*)
+	| small_stmt small_stmt_opt* SEMICOLON? NEWLINE {}
 	
 small_stmt_opt:
-	(* | small_stmt_opt {} *)
-	| SEMICOLON small_stmt NEWLINE {}
+	| SEMICOLON small_stmt {}
 	
 small_stmt :
 	| expr_stmt {}
-(* 	| del_stmt {}
+ 	| del_stmt {}
 	| pass_stmt {}
 	| flow_stmt {}
 	| import_stmt {}
 	| global_stmt {}
 	| nonlocal_stmt {}
 	| assert_stmt {}
- *)
+ 
+
+del_stmt:
+	| DEL exprlist {}
+
+pass_stmt:
+	| PASS {}
+	
+flow_stmt:
+	| break_stmt {}
+	| continue_stmt {}
+	| return_stmt {}
+	| raise_stmt {}
+	| yield_stmt {}
+
+break_stmt:
+	| BREAK {}
+	
+continue_stmt
+	| CONTINUE {}
+	
+return_stmt:
+	| RETURN testlist_opt {}
+
+testlist_opt:
+	| {}
+	| testlist {}
+	
+yield_stmt:
+	| yield_expr {}
+	
+raise_stmt:
+	| RAISE test_from_test_opt {}
+
+test_from_test_opt:
+	| {}
+	| test from_test_opt {}
+
+from_test_opt:
+	| {}
+	| FROM test {}
+
 
 expr_stmt:
-	| testlist_star_expr super_expr_stmt {} (*check grammar definition *)
+	| testlist_star_expr super_expr_stmt {}
 
 super_expr_stmt:
 	| annassign {}
-(*	| annassign yield_or_testlist {}
-	| assign_stmt {}*)
+	| augassign yield_or_testlist {}
+	| assign_stmt {}
+
+augassign:
+	| PLUSEQUAL {}
+	| MINUSEQUAL {}
+	| TIMESEQUAL {}
+	| DIVEQUAL {}
+	| ANDEQUAL {}
+	| OREQUAL {}
+	| XOREQUAL {}
+	| RSHIFTEQUAL {}
+	| LSHIFTEQUAL {}
+	| POWEREQUAL {}
+	| FLOORDIVEQUAL {}
+
+yield_or_testlist:
+	| testlist {}
+	| yield_expr {}
+
+assign_statement:
+	| EQUAL yield_or_testlist_start* {}
+
+yield_or_testlist_start:
+	| yield_expr {}
+	| testlist_star_expr {}
 
 annassign:
 	| COLON test annassign_opt? {}
@@ -298,34 +361,7 @@ comp_op:
 
 
 (* 
-del_stmt:
-	| DEL exprlist {}
 
-pass_stmt:
-	| PASS {}
-	
-flow_stmt:
-	| break_stmt {}
-	| continue_stmt {}
-	| return_stmt {}
-	| raise_stmt {}
-	| yield_stmt {}
-
-break_stmt:
-	| BREAK {}
-
-continue_stmt:import_stmt
-import_stmt
-	| CONTINUE {}
-	
-return_stmt:
-	| RETURN testlist {}
-	
-yield_stmt:
-	| yield_expr {}
-	
-raise_stmt:
-	| RAISE test FROM test
 	
 import_stmt:
 	| import_name
