@@ -548,7 +548,7 @@ atom_expr:
 atom:
 	| LPAREN yield_or_testlist_expr? RPAREN {} 
 	| LBRACK testlist_comp? RBRACK {}
-	| LBRACE dictorsetmaker RBRACE {}
+	(*| LBRACE dictorsetmaker RBRACE {}*)
 	| IDENT {}
 	| INTEGERLIT {}
 	| STRINGLIT+ {}
