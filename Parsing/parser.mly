@@ -648,3 +648,91 @@ comp_op:
 	| IS {}
 	| IS NOT {}
 	
+exprlist:
+testlist:
+
+testlist_comp:
+	| test_or_star_expr comp_for_or_test_start_expr_opt {}
+	
+comp_for_or_test_start_expr_opt:
+	| {}
+	| comp_for_or_test_star_expr comp_for_or_test_start_expr_opt {}
+	
+comp_for_or_test_star_expr:
+	| comp_for {}
+	| test_or_star_expr_opts comma_opt {}
+	
+	
+subscriptlist:
+	| subscript comma_subscript_opt comma_opt {}
+	
+comma_subscript_opt:
+	| {}
+	| comma_subscript comma_subscript_opt {}
+	
+comma_subscript:
+	| COMMA subscript {}
+	
+subscript:
+	| test {}
+	| test_opt COLON test_opt sliceop_opt
+	
+test_opt:
+	| {}
+	| test {}
+	
+sliceop_opt:
+	| {}
+	| sliceop {}
+	
+sliceop:
+	| COLON test_opt {}
+	
+exprlist:
+	| expr_or_start_expr comma_expr_or_star_expr_opt comma_opt {}
+	
+
+expr_or_start_expr:
+	| expr {}
+	| star_expr {}
+	
+comma_expr_or_star_expr_opt:
+	| {}
+	| comma_expr_or_star_expr comma_expr_or_star_expr_opt {}
+	
+comma_expr_or_star_expr:
+	| COMMA expr_or_start_expr {}
+	
+testlist:
+	| test comma_test_testlist comma_opt {}
+	
+comma_test_testlist:
+	| {}
+	| comma_test comma_test_testlist {}
+	
+comma_test:
+	| COMMA test {}
+	
+classdef:
+	| CLASS IDENT arglist_paren_opt COLON suite {}
+	
+comp_iter:
+	| comp_for {}
+	| comp_if {}
+	
+sync_comp_for:
+	| FOR exprlist IN or_test comp_iter_opt {}
+	
+comp_iter_opt:
+	| {}
+	| comp_iter {}
+	
+comp_for:
+	| async_opt sync_comp_for {}
+	
+async_opt:
+	| {}
+	| ASYNC {}
+	
+comp_if:
+	| IF test_no_cond comp_iter_opt {}
