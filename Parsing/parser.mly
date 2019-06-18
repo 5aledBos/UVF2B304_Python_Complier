@@ -70,7 +70,7 @@ arglist_opt:
 
 decorators_opt:
 	| {}
-	| decorator decorator_opt {}
+	| decorator decorators_opt {}
 	
 decorators:
 	| decorator decorators_opt {}
@@ -87,23 +87,23 @@ async_funcdef:
 	| ASYNC funcdef {}
 	
 funcdef:
-	| DEF IDENT parameter arrow_test_opt COLON suite {}
+	| DEF IDENT parameters arrow_test_opt COLON suite {}
 	
 arrow_test_opt:
 	| {}
 	| FUNCMETADATA test {}
 	
 parameters:
-	| LPAREN typedarglist_opt RPAREN {}
+	| LPAREN typedargslist_opt RPAREN {}
 	
-typedarglist_opt:
+typedargslist_opt:
 	| {}
-	| typedarglist {}
+	| typedargslist {}
 
-typedarglist:
+typedargslist:
 	| tfpdef equal_test_opt tfpdef_test_opt comma_times_power_tfpdef_test_opt {}
-	| POWER tpfdef comma_opt {}
-	| TIMES tpfdef_opt tfpdef_test_opt comma_tfpdef_opt {}
+	| POWER tfpdef comma_opt {}
+	| TIMES tfpdef_opt tfpdef_test_opt comma_tfpdef_opt {}
 	
 comma_times_power_tfpdef_test_opt:
 	| {}
@@ -223,7 +223,7 @@ flow_stmt:
 break_stmt:
 	| BREAK {}
 	
-continue_stmt
+continue_stmt:
 	| CONTINUE {}
 	
 return_stmt:
@@ -252,7 +252,7 @@ import_stmt:
 	| import_from {}
 	
 import_name:
-	| IMPORT dotted_as_names
+	| IMPORT dotted_as_names {}
 	
 import_from:
 	| FROM import_from_block IMPORT import_name_block {}
@@ -307,7 +307,7 @@ dotted_name:
 	| IDENT dot_name_opt {}
 	
 dot_name_opt:
-	| {]
+	| {}
 	| POINT IDENT {}
 	
 global_stmt:
@@ -317,7 +317,7 @@ nonlocal_stmt:
 	| NONLOCAL IDENT comma_name_opt {}
 	
 assert_stmt:
-	| ASSERT test comma_test_opt
+	| ASSERT test comma_test_opt {}
 
 comma_test_opt:
 	| {}
@@ -369,10 +369,10 @@ elif_stmt:
 	
 else_colon_suite_opt:
 	| {}
-	| else_olon_suite else_colon_suite_opt {}
+	| else_colon_suite else_colon_suite_opt {}
 	
 else_colon_suite:
-	| ELSE colon suite {}
+	| ELSE COLON suite {}
 
 while_stmt:
 	| WHILE test COLON suite else_colon_suite_opt {}
@@ -433,6 +433,14 @@ super_expr_stmt:
 	| annassign {}
 	| augassign yield_or_testlist {}
 	| assign_stmt {}
+
+assign_stmt_expr:
+	| {}
+	| assign_stmt assign_stmt_expr {}
+
+assign_stmt:
+	| EQUAL yield_expr {}
+	| EQUAL testlist_star_expr {}
 
 augassign:
 	| PLUSEQUAL {}
@@ -605,11 +613,11 @@ or_test_conditional:
 
 
 test_nocond: 
-	| or_test
-	| lambdef_nocond
+	| or_test {}
+	| lambdef_nocond {}
 
 lambdef:
-	| LAMBDA varargslist COLON test
+	| LAMBDA varargslist COLON test {}
 
 lambdef_nocond:
 	| LAMBDA varargslist COLON test_nocond {}
@@ -648,9 +656,9 @@ comp_op:
 	| IS {}
 	| IS NOT {}
 	
-exprlist:
+(* exprlist:
 testlist:
-
+ *)
 testlist_comp:
 	| test_or_star_expr comp_for_or_test_start_expr_opt {}
 	
@@ -675,7 +683,7 @@ comma_subscript:
 	
 subscript:
 	| test {}
-	| test_opt COLON test_opt sliceop_opt
+	| test_opt COLON test_opt sliceop_opt {}
 	
 test_opt:
 	| {}
@@ -735,4 +743,4 @@ async_opt:
 	| ASYNC {}
 	
 comp_if:
-	| IF test_no_cond comp_iter_opt {}
+	| IF test_nocond comp_iter_opt {}
