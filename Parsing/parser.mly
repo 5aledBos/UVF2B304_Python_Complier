@@ -425,7 +425,7 @@ test_as_test_opt:
 
 suite:
 	| simple_stmt {}
-	| NEWLINE {}
+	| NEWLINE INDENT stmt+ DEDENT {}
 
 expr_stmt:
 	| testlist_star_expr super_expr_stmt {}
