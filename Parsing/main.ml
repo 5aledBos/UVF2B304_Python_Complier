@@ -2,14 +2,14 @@ open Lexer
 open Parser
 open ErrorHandler
 open Lexing
+open Lexer_state
 
-
-(* let rec lexAllBuf lexbuf =
-let lex = Lexer.read lexbuf in
+let rec lexAllBuf state lexbuf =
+let lex = Lexer.read state lexbuf in
 match lex with
 | EOF -> ()
-| newline ->  print_string " "; print_newline (); lexAllBuf lexbuf 
-| _ -> print_token lex; print_string " "; lexAllBuf lexbuf *)
+(*| newline ->  print_string " "; print_newline (); lexAllBuf lexbuf *)
+| _ -> print_token lex; print_string " "; lexAllBuf state lexbuf
  
 
 let compile file =
@@ -18,8 +18,10 @@ try
 	let input_file = open_in file in
 	let lexbuf = Lexing.from_channel input_file in
 	try
-		Parser.prog Lexer.read lexbuf;
-		(* lexAllBuf lexbuf; *)
+		(*let state = Lexer_state.create in
+		Parser.prog (Lexer.read state) lexbuf;*)
+		let state = Lexer_state.create () in 
+			Parser.prog (Lexer.read state) lexbuf; ;
 		print_string "SUCCESS";
 		print_newline();
 		

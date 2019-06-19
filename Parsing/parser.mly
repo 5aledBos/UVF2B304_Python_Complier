@@ -9,7 +9,7 @@
 %token <string> STRINGLONG
 
 (* Infix Operators*)
-%token PLUS MINUS TIMES
+%token PLUS MINUS TIMES INDENT DEDENT
 %token DIV AND OR XOR
 %token MOD INF SUP
 %token ISEQUAL ISNOTEQUAL
@@ -424,7 +424,8 @@ test_as_test_opt:
 	| test as_name_opt {}
 
 suite:
-	| IDENT {}
+	| simple_stmt {}
+	| NEWLINE {}
 
 expr_stmt:
 	| testlist_star_expr super_expr_stmt {}

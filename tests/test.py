@@ -1,7 +1,5 @@
 from module import SuperClass
 
-# Basic test class
-
 class LexerTestClassBasicKeywords(SuperClass):
 	def __init__(self, *args, **kwargs):
 		self.int_val = 789
