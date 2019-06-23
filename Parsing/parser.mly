@@ -101,17 +101,20 @@ typedargslist_opt:
 	| typedargslist {}
 
 typedargslist:
-	| tfpdef equal_test_opt tfpdef_test_opt comma_times_power_tfpdef_test_opt {}
+	| tfpdef_init_opt tfpdef_test_opt (*comma_times_power_tfpdef_test_opt*) {}
 	| POWER tfpdef comma_opt {} (*works*)
 	| TIMES tfpdef_opt tfpdef_test_opt comma_tfpdef_opt {} (*works*)
 	
+tfpdef_init_opt:
+	| tfpdef equal_test_opt {}
+
 comma_times_power_tfpdef_test_opt:
 	| {}
 	| COMMA times_power_tfpdef_test_opt {}
 	
 times_power_tfpdef_test_opt:
 	| {}
-	| TIMES tfpdef COMMA (*tfpdef_test_opt comma_tfpdef_opt*) {}
+	| TIMES tfpdef tfpdef_test_opt comma_tfpdef_opt {}
 	| POWER tfpdef comma_opt {}
 	
 comma_tfpdef_opt:
@@ -127,7 +130,7 @@ tfpdef_test_opt:
 	| tfpdef_test tfpdef_test_opt {}
 	
 tfpdef_test:
-	| COMMA tfpdef equal_test_opt {}
+	| COMMA tfpdef_init_opt {}
 	
 tfpdef_opt:
 	| {}
@@ -369,7 +372,7 @@ elif_stmt:
 	
 else_colon_suite_opt:
 	| {}
-	| else_colon_suite else_colon_suite_opt {}
+	| else_colon_suite {}
 	
 else_colon_suite:
 	| ELSE COLON suite {}
@@ -385,8 +388,11 @@ try_stmt:
 	| TRY COLON suite try_except_clause_stmt {}
 	
 try_except_clause_stmt:
-	| FINALLY COLON suite {}
+	| finally_colon_suite {}
 	| except_clause_suite except_clause_suite_opt else_colon_suite_opt finally_colon_suite_opt {}
+
+finally_colon_suite:
+	| FINALLY COLON suite {}
 	
 except_clause_suite_opt:
 	| {}
@@ -397,7 +403,7 @@ except_clause_suite:
 	
 finally_colon_suite_opt:
 	| {}
-	| FINALLY COLON suite {}
+	| finally_colon_suite {}
 	
 with_stmt:
 	| WITH with_item comma_with_item_opt COLON suite {}
@@ -585,7 +591,6 @@ trailer:
 
 arglist:
 	| argument argument_opts comma_opt {}
-	| argument argument_opt* COMMA? {}
 
 comma_opt:
 	| {}
@@ -596,6 +601,7 @@ argument_opts:
 	| argument_opt argument_opts {}
 
 argument_opt:
+	| {}
 	| COMMA argument {}
 
 argument:
@@ -657,9 +663,6 @@ comp_op:
 	| IS {}
 	| IS NOT {}
 	
-(* exprlist:
-testlist:
- *)
 testlist_comp:
 	| test_or_star_expr comp_for_or_test_start_expr_opt {}
 	
