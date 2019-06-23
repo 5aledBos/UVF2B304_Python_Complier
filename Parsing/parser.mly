@@ -199,7 +199,7 @@ simple_stmt:
 small_stmt_opt:
 	| SEMICOLON small_stmt {}
 	
-small_stmt :
+small_stmt:
 	| expr_stmt {}
  	| del_stmt {}
 	| pass_stmt {}
