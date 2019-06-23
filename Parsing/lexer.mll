@@ -31,7 +31,7 @@ let _ = List.iter (fun (kwd, tok) -> Hashtbl.add keyword_table kwd tok)
 	"in", 			IN;
 	"is", 			IS;
 	"lambda", 		LAMBDA;
-	"nonlocal", 	NONLOCAL;
+	"nonlocal", 		NONLOCAL;
 	"not", 			NOT;
 	"or", 			OR;
 	"pass", 		PASS;
