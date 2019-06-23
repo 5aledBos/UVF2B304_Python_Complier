@@ -102,8 +102,8 @@ typedargslist_opt:
 
 typedargslist:
 	| tfpdef equal_test_opt tfpdef_test_opt comma_times_power_tfpdef_test_opt {}
-	| POWER tfpdef comma_opt {}
-	| TIMES tfpdef_opt tfpdef_test_opt comma_tfpdef_opt {}
+	| POWER tfpdef comma_opt {} (*works*)
+	| TIMES tfpdef_opt tfpdef_test_opt comma_tfpdef_opt {} (*works*)
 	
 comma_times_power_tfpdef_test_opt:
 	| {}
@@ -111,7 +111,7 @@ comma_times_power_tfpdef_test_opt:
 	
 times_power_tfpdef_test_opt:
 	| {}
-	| TIMES tfpdef_opt tfpdef_test_opt comma_tfpdef_opt {}
+	| TIMES tfpdef COMMA (*tfpdef_test_opt comma_tfpdef_opt*) {}
 	| POWER tfpdef comma_opt {}
 	
 comma_tfpdef_opt:

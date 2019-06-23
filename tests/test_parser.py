@@ -1,6 +1,3 @@
-class ClassA():
-	x = 0
-	a = 9
-	if x == 0:
-		a = 10
-	a = 9
+def function(*args, x=5):
+	x = 5
+	return x

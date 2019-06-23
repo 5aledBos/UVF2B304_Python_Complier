@@ -5,7 +5,7 @@ open Lexing
 open Lexer_state
 
 let rec lexAllBuf state lexbuf =
-let lex = Lexer.read state lexbuf in
+let lex = (Lexer.read state) lexbuf in
 match lex with
 | EOF -> ()
 (*| newline ->  print_string " "; print_newline (); lexAllBuf lexbuf *)
@@ -19,7 +19,7 @@ try
 	let lexbuf = Lexing.from_channel input_file in
 	try
 		(*let state = Lexer_state.create in
-		Parser.prog (Lexer.read state) lexbuf;*)
+			lexAllBuf state lexbuf; *)
 		let state = Lexer_state.create () in 
 			Parser.prog (Lexer.read state) lexbuf; ;
 		print_string "SUCCESS";
