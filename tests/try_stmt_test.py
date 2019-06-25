@@ -23,4 +23,9 @@ else :
 finally:
 	x = 13
 
+try:
+	x = openfile("path_to_file")
+except Exception:
+	x = closefile()
+
 
