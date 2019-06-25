@@ -9,7 +9,7 @@
 %token <string> STRINGLONG
 
 (* Infix Operators*)
-%token PLUS MINUS TIMES
+%token PLUS MINUS TIMES INDENT DEDENT
 %token DIV AND OR XOR
 %token MOD INF SUP
 %token ISEQUAL ISNOTEQUAL
@@ -57,15 +57,131 @@ prog:
 	| file_input {}
 
 
-(*decorator:
-	| AROBAS dotted_name LPAREN arglist RPAREN NEWLINE {}
-
-decorator_opt:
+decorator:
+	| AROBAS dotted_name arglist_paren_opt NEWLINE {}
+	
+arglist_paren_opt:
 	| {}
-	| decorator {}
+	| LPAREN arglist_opt RPAREN {}
+	
+arglist_opt:
+	| {}
+	| arglist {}
+
+decorators_opt:
+	| {}
+	| decorator decorators_opt {}
 	
 decorators:
-	| decorator decorator_opt {}*)
+	| decorator decorators_opt {}
+
+decorated:
+	| decorators class_func_def {}
+
+class_func_def:
+	| classdef {}
+	| funcdef {}
+	| async_funcdef {}
+	
+async_funcdef:
+	| ASYNC funcdef {}
+	
+funcdef:
+	| DEF IDENT parameters arrow_test_opt COLON suite {}
+	
+arrow_test_opt:
+	| {}
+	| FUNCMETADATA test {}
+	
+parameters:
+	| LPAREN typedargslist_opt RPAREN {}
+	
+typedargslist_opt:
+	| {}
+	| typedargslist {}
+
+typedargslist:
+	| tfpdef_init_opt tfpdef_test_opt (*comma_times_power_tfpdef_test_opt*) {}
+	| POWER tfpdef comma_opt {} (*works*)
+	| TIMES tfpdef_opt tfpdef_test_opt comma_tfpdef_opt {} (*works*)
+	
+tfpdef_init_opt:
+	| tfpdef equal_test_opt {}
+
+comma_times_power_tfpdef_test_opt:
+	| {}
+	| COMMA times_power_tfpdef_test_opt {}
+	
+times_power_tfpdef_test_opt:
+	| {}
+	| TIMES tfpdef tfpdef_test_opt comma_tfpdef_opt {}
+	| POWER tfpdef comma_opt {}
+	
+comma_tfpdef_opt:
+	| {}
+	| COMMA power_tfpdef_opt {}
+	
+power_tfpdef_opt:
+	| {}
+	| POWER tfpdef comma_opt {}
+	
+tfpdef_test_opt:
+	| {}
+	| tfpdef_test tfpdef_test_opt {}
+	
+tfpdef_test:
+	| COMMA tfpdef_init_opt {}
+	
+tfpdef_opt:
+	| {}
+	| tfpdef {}
+
+tfpdef:
+	| IDENT colon_test_opt {}
+	
+colon_test_opt:
+	| {}
+	| COLON test {}
+
+varargslist:
+	| vfpdef equal_test_opt vfpdef_test_opt comma_times_power_vfpdef_test_opt {}
+	| POWER vfpdef comma_opt {}
+	| TIMES vfpdef_opt vfpdef_test_opt comma_vfpdef_opt {}
+
+comma_times_power_vfpdef_test_opt:
+	| {}
+	| COMMA times_power_vfpdef_test_opt {}
+	
+times_power_vfpdef_test_opt:
+	| {}
+	| TIMES vfpdef_opt vfpdef_test_opt comma_vfpdef_opt {}
+	| POWER vfpdef comma_opt {}
+	
+vfpdef_test_opt:
+	| {}
+	| vfpdef_test vfpdef_test_opt {}
+	
+vfpdef_test:
+	| COMMA vfpdef equal_test_opt {}
+	
+equal_test_opt:
+	| {}
+	| EQUAL test {}
+	
+comma_vfpdef_opt:
+	| {}
+	| COMMA power_vfpdef_opt {}
+	
+power_vfpdef_opt:
+	| {}
+	| POWER vfpdef comma_opt {}
+
+vfpdef_opt:
+	| {}
+	| vfpdef {}
+vfpdef:
+	| IDENT {}
+
 file_input:
 	| new_line_stmt* EOF {}
 
@@ -75,34 +191,287 @@ new_line_stmt:
 	
 stmt:
 	| simple_stmt {}
-	(* | compound_stmt {} *)
+	| compound_stmt {}
 	
 simple_stmt:
-	| small_stmt {}
-	(*| small_stmt small_stmt_opt* SEMICOLON? NEWLINE {}*)
+	| small_stmt small_stmt_opt* SEMICOLON? NEWLINE {}
 	
 small_stmt_opt:
-	(* | small_stmt_opt {} *)
-	| SEMICOLON small_stmt NEWLINE {}
+	| SEMICOLON small_stmt {}
 	
-small_stmt :
+small_stmt:
 	| expr_stmt {}
-(* 	| del_stmt {}
+ 	| del_stmt {}
 	| pass_stmt {}
 	| flow_stmt {}
 	| import_stmt {}
 	| global_stmt {}
 	| nonlocal_stmt {}
 	| assert_stmt {}
- *)
+ 
+
+del_stmt:
+	| DEL exprlist {}
+
+pass_stmt:
+	| PASS {}
+	
+flow_stmt:
+	| break_stmt {}
+	| continue_stmt {}
+	| return_stmt {}
+	| raise_stmt {}
+	| yield_stmt {}
+
+break_stmt:
+	| BREAK {}
+	
+continue_stmt:
+	| CONTINUE {}
+	
+return_stmt:
+	| RETURN testlist_opt {}
+
+testlist_opt:
+	| {}
+	| testlist {}
+	
+yield_stmt:
+	| yield_expr {}
+	
+raise_stmt:
+	| RAISE test_from_test_opt {}
+
+test_from_test_opt:
+	| {}
+	| test from_test_opt {}
+
+from_test_opt:
+	| {}
+	| FROM test {}
+	
+import_stmt:
+	| import_name {}
+	| import_from {}
+	
+import_name:
+	| IMPORT dotted_as_names {}
+	
+import_from:
+	| FROM import_from_block IMPORT import_name_block {}
+	
+import_name_block:
+	| TIMES {}
+	| LPAREN import_as_names RPAREN {}
+	| import_as_names {}
+	
+import_as_name:
+	| IDENT as_name_opt {}
+	
+as_name_opt:
+	| {}
+	| AS IDENT {}
+	
+dotted_as_name:
+	| dotted_name as_name_opt {}
+	
+import_as_names:
+	| import_as_name comma_import_as_name_opt comma_opt {}
+	
+comma_import_as_name_opt:
+	| {}
+	| comma_import_as_name comma_import_as_name_opt {}
+	
+comma_import_as_name:
+	| COMMA import_as_name {}
+	
+dotted_as_names:
+	| dotted_as_name comma_dotted_as_name_opt {}
+	
+comma_dotted_as_name_opt:
+	| {}
+	| comma_dotted_as_name comma_dotted_as_name_opt {}
+	
+comma_dotted_as_name:
+	| COMMA dotted_as_name {}
+
+	
+import_from_block:
+	| only_dots_import {}
+	| dots_name_import {}
+	
+only_dots_import:
+	| dots dots_opt {}
+	
+dots_name_import:
+	| dots_opt dotted_name {}
+	
+dotted_name:
+	| IDENT dot_name_opt {}
+	
+dot_name_opt:
+	| {}
+	| POINT IDENT {}
+	
+global_stmt:
+	| GLOBAL IDENT comma_name_opt {}
+	
+nonlocal_stmt:
+	| NONLOCAL IDENT comma_name_opt {}
+	
+assert_stmt:
+	| ASSERT test comma_test_opt {}
+
+comma_test_opt:
+	| {}
+	| COMMA test {}
+	
+dots_opt:
+	| {}
+	| dots {}
+
+dots:
+	| POINT {}
+	| POINT POINT POINT {}
+
+comma_name_opt:
+	| {}
+	| comma_name comma_name_opt {}
+
+comma_name:
+	| COMMA IDENT {}
+	
+compound_stmt:
+	| if_stmt {}
+	| while_stmt {}
+	| for_stmt {}
+	| try_stmt {}
+	| with_stmt {}
+	| funcdef {}
+	| classdef {}
+	| decorated {}
+	| async_stmt {}
+
+async_stmt:
+	| ASYNC with_for_funcdef_stmt {}
+
+with_for_funcdef_stmt:
+	| funcdef {}
+	| with_stmt {}
+	| for_stmt {}
+
+if_stmt:
+	| IF test COLON suite elif_stmt_opt else_colon_suite_opt {}
+
+elif_stmt_opt:
+	| {}
+	| elif_stmt elif_stmt_opt {}
+	
+elif_stmt:
+	| ELIF test COLON suite {}
+	
+else_colon_suite_opt:
+	| {}
+	| else_colon_suite {}
+	
+else_colon_suite:
+	| ELSE COLON suite {}
+
+while_stmt:
+	| WHILE test COLON suite else_colon_suite_opt {}
+	
+
+for_stmt:
+	| FOR exprlist IN testlist COLON suite else_colon_suite_opt {}
+
+try_stmt:
+	| TRY COLON suite try_except_clause_stmt {}
+	
+try_except_clause_stmt:
+	| finally_colon_suite {}
+	| except_clause_suite except_clause_suite_opt else_colon_suite_opt finally_colon_suite_opt {}
+
+finally_colon_suite:
+	| FINALLY COLON suite {}
+	
+except_clause_suite_opt:
+	| {}
+	| except_clause_suite except_clause_suite_opt {}
+	
+except_clause_suite:
+	| except_clause COLON suite {}
+	
+finally_colon_suite_opt:
+	| {}
+	| finally_colon_suite {}
+	
+with_stmt:
+	| WITH with_item comma_with_item_opt COLON suite {}
+	
+comma_with_item_opt:
+	| {}
+	| comma_with_item comma_with_item_opt {}
+	
+comma_with_item:
+	| COMMA with_item {}
+	
+with_item:
+	| test as_expr_opt {}
+	
+as_expr_opt:
+	| {}
+	| AS expr {}
+	
+except_clause:
+	| EXCEPT test_as_test_opt {}
+	
+test_as_test_opt:
+	| {}
+	| test as_name_opt {}
+
+suite:
+	| simple_stmt {}
+	| NEWLINE INDENT stmt+ DEDENT {}
 
 expr_stmt:
-	| testlist_star_expr super_expr_stmt {} (*check grammar definition *)
+	| testlist_star_expr super_expr_stmt {}
 
 super_expr_stmt:
 	| annassign {}
-(*	| annassign yield_or_testlist {}
-	| assign_stmt {}*)
+	| augassign yield_or_testlist {}
+	| assign_stmt {}
+
+assign_stmt_expr:
+	| {}
+	| assign_stmt assign_stmt_expr {}
+
+assign_stmt:
+	| EQUAL yield_expr {}
+	| EQUAL testlist_star_expr {}
+
+augassign:
+	| PLUSEQUAL {}
+	| MINUSEQUAL {}
+	| TIMESEQUAL {}
+	| DIVEQUAL {}
+	| ANDEQUAL {}
+	| OREQUAL {}
+	| XOREQUAL {}
+	| RSHIFTEQUAL {}
+	| LSHIFTEQUAL {}
+	| POWEREQUAL {}
+	| FLOORDIVEQUAL {}
+
+yield_or_testlist:
+	| testlist {}
+	| yield_expr {}
+
+assign_statement:
+	| EQUAL yield_or_testlist_start* {}
+
+yield_or_testlist_start:
+	| yield_expr {}
+	| testlist_star_expr {}
 
 annassign:
 	| COLON test annassign_opt? {}
@@ -117,7 +486,7 @@ testlist_star_expr:
 
 test_or_star_expr:
 	| test {}
-	(*| star_expr {}*)
+	| star_expr {}
 
 test_or_star_expr_opts:
 	| {}
@@ -174,7 +543,7 @@ factor_opt:
 	| MOD factor {}
 
 factor:
-	(*| operator_factor {}*)
+	| operator_factor {}
 	| power {}
 
 operator_factor:
@@ -192,9 +561,9 @@ atom_expr:
 	| AWAIT? atom trailer* {}
 
 atom:
-	(* | LPAREN yield_or_testlist_expr? RPAREN {} *)
-	(* | LBRACK testlist_comp? RBRACK {} *)
-	(* | LBRACE dictorsetmaker RBRACE {} *)
+	| LPAREN yield_or_testlist_expr? RPAREN {} 
+	| LBRACK testlist_comp? RBRACK {}
+	(*| LBRACE dictorsetmaker RBRACE {}*)
 	| IDENT {}
 	| INTEGERLIT {}
 	| STRINGLIT+ {}
@@ -204,25 +573,24 @@ atom:
 
 yield_or_testlist_expr:
 	| yield_expr {}
-(*	| testlist_comp {}*)
+	| testlist_comp {}
 
 yield_expr:
 	| YIELD yield_arg? {}
 
 yield_arg:
 	| FROM test {}
-	(*| testlist {}*)
+	| testlist {}
     
 
 
 trailer:
 	| LPAREN arglist? RPAREN {}
-	(*| LBRACK subscriptlist? RBRACK {}*)
+	| LBRACK subscriptlist? RBRACK {}
 	| POINT IDENT {}
 
 arglist:
 	| argument argument_opts comma_opt {}
-	(* | argument argument_opt* COMMA? {} *)
 
 comma_opt:
 	| {}
@@ -233,33 +601,34 @@ argument_opts:
 	| argument_opt argument_opts {}
 
 argument_opt:
+	| {}
 	| COMMA argument {}
 
 argument:
-	(*| test comp_for? {}*) 
+	| test comp_for? {}
 	| test EQUAL test {}
 	| POWER test {}
 	| TIMES test {}
 
 test:
 	| or_test or_test_conditional {}
-	(*| lambdef {}*)
+	| lambdef {}
 	
 or_test_conditional:
 	| {}
 	| IF or_test ELSE test {}
 
-(*
+
 test_nocond: 
-	| or_test
-	| lambdef_nocond
+	| or_test {}
+	| lambdef_nocond {}
 
 lambdef:
-	| LAMBDA varargslist COLON test
+	| LAMBDA varargslist COLON test {}
 
 lambdef_nocond:
 	| LAMBDA varargslist COLON test_nocond {}
-*)
+
 or_test:
 	| and_test or_and_test_opt* {}
 
@@ -273,7 +642,7 @@ and_not_test_opt:
 	| AND not_test {}
 	
 not_test:
-	(*| NOT not_test {}*)
+	| NOT not_test {}
 	| comparison {}
 	
 comparison:
@@ -294,159 +663,88 @@ comp_op:
 	| IS {}
 	| IS NOT {}
 	
-
-
-
-(* 
-del_stmt:
-	| DEL exprlist {}
-
-pass_stmt:
-	| PASS {}
+testlist_comp:
+	| test_or_star_expr comp_for_or_test_start_expr_opt {}
 	
-flow_stmt:
-	| break_stmt {}
-	| continue_stmt {}
-	| return_stmt {}
-	| raise_stmt {}
-	| yield_stmt {}
-
-break_stmt:
-	| BREAK {}
-
-continue_stmt:import_stmt
-import_stmt
-	| CONTINUE {}
-	
-return_stmt:
-	| RETURN testlist {}
-	
-yield_stmt:
-	| yield_expr {}
-	
-raise_stmt:
-	| RAISE test FROM test
-	
-import_stmt:
-	| import_name
-	| import_from
-	
-import_name:
-	| IMPORT dotted_as_name
-	
-import_from:
-	| FROM dots_and_dotted_name IMPORT import_names
-
-import_names:
-	| import_as_names
-	| TIMES 
-	| LPAREN import_as_names RPAREN
-	
-dots_and_dotted_name:
-	| dots_opt dotted_name 
-	| dots
-
-dots_opt:
+comp_for_or_test_start_expr_opt:
 	| {}
-	| dots
-
-dots:
-	| POINT
-	| POINT POINT POINT
+	| comp_for_or_test_star_expr comp_for_or_test_start_expr_opt {}
 	
-import_as_name:
-	| NAME AS NAME
-
-dotted_as_name :
-	| dotted_name AS NAME
-
-import_as_names :
-	| import_as_name import_as_name_opt COMMA
-
-import_as_name_opt:
+comp_for_or_test_star_expr:
+	| comp_for {}
+	| test_or_star_expr_opts comma_opt {}
+	
+	
+subscriptlist:
+	| subscript comma_subscript_opt comma_opt {}
+	
+comma_subscript_opt:
 	| {}
-	| import_as_name_opt {}
-	| COMMA import_as_name [}
-
-dotted_as_names:
-	| dotted_as_name dotted_as_name_opt
+	| comma_subscript comma_subscript_opt {}
 	
-dotted_as_name_opt:
+comma_subscript:
+	| COMMA subscript {}
+	
+subscript:
+	| test {}
+	| test_opt COLON test_opt sliceop_opt {}
+	
+test_opt:
 	| {}
-	| dotted_as_name_opt {}
-	| COMMA dotted_as_name {}
+	| test {}
 	
-dotted_name:
-	| NAME dotted_name_opt
-	
-dotted_name_opt:
+sliceop_opt:
 	| {}
-	| dotted_name_opt {}
-	| POINT NAME
-
-global_stmt:
-	| GLOBAL NAME comma_name_opt
-
-comma_name_opt:
-	| {}
-	| comma_name_opt {}
-	| COMMA NAME
+	| sliceop {}
 	
-nonlocal_stmt:
-	| NONLOCAL NAME comma_name_opt {}
+sliceop:
+	| COLON test_opt {}
 	
-assert_stmt:
-	| ASSERT test comma_test_opt
+exprlist:
+	| expr_or_start_expr comma_expr_or_star_expr_opt comma_opt {}
+	
 
-comma_test_opt:
+expr_or_start_expr:
+	| expr {}
+	| star_expr {}
+	
+comma_expr_or_star_expr_opt:
 	| {}
-	| comma_test_opt {}
+	| comma_expr_or_star_expr comma_expr_or_star_expr_opt {}
+	
+comma_expr_or_star_expr:
+	| COMMA expr_or_start_expr {}
+	
+testlist:
+	| test comma_test_testlist comma_opt {}
+	
+comma_test_testlist:
+	| {}
+	| comma_test comma_test_testlist {}
+	
+comma_test:
 	| COMMA test {}
 	
-compound_stmt:
-	| if_stmt {}
-	| while_stmt {}
-	| for_stmt {}
-	| try_stmt {}
-	| with_stmt {}
-	| funcdef {}
-	| classdef {}
-	| decorated {}
-	| async_stmt {}
-
-async_stmt:
-	| ASYNC with_for_funcdef_stmt
-
-with_for_funcdef_stmt:
-	| funcdef
-	| with_stmt
-	| for_stmt
-
-if_stmt:
-	| IF test COLON suite elif_stmt_opt ELSE COLON suite
-
-elif_stmt_opt:
+classdef:
+	| CLASS IDENT arglist_paren_opt COLON suite {}
+	
+comp_iter:
+	| comp_for {}
+	| comp_if {}
+	
+sync_comp_for:
+	| FOR exprlist IN or_test comp_iter_opt {}
+	
+comp_iter_opt:
 	| {}
-	| ELIF test COLON suite
-
-while_stmt:
-	| WHILE test COLON suite ELSE COLON suite
-
-for_stmt:
-	| FOR exprlist IN testlist COLON suite ELSE COLON suite
+	| comp_iter {}
 	
-white_stmt:
-	| WITH with_item comma_with_item_opt COLON suite
+comp_for:
+	| async_opt sync_comp_for {}
 	
-comma_with_item_opt:
+async_opt:
 	| {}
-	| COMMA with_item
+	| ASYNC {}
 	
-with_item:
-	| test AS expr_stmt
-
-suite:
-	| simple_stmt
-	| NEWLINE IDENT stmt DEDENT
-	
-*)
+comp_if:
+	| IF test_nocond comp_iter_opt {}

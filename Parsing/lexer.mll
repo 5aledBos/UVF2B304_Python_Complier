@@ -2,6 +2,17 @@
 open Lexing
 open Parser
 open ErrorHandler
+open Lexer_state
+
+
+let curr_pos lexbuf = lexbuf.lex_start_p
+
+  let count_lines s =
+    let n = ref 0 in
+      String.iter
+        (fun c -> if c = '\n' then incr n)
+        s;
+!n
 
 let keyword_table = Hashtbl.create 15
 let _ = List.iter (fun (kwd, tok) -> Hashtbl.add keyword_table kwd tok)
@@ -46,8 +57,10 @@ let _ = List.iter (fun (kwd, tok) -> Hashtbl.add keyword_table kwd tok)
 ]
 
 }
-let white     							= [' ']+
+let e = ""
+let whitespace     							= [' ']+
 let tab 								= ['	' '\t']
+let indent_catcher 						= "\n"tab*
 let lowercase							= ['a'-'z']
 let uppercase							= ['A'-'Z']
 let newline   							= ('\r' | '\n' | "\r\n")+
@@ -69,14 +82,45 @@ let floatNumber 						= pointFloat | exponentFloat
 let imagNumber 							= (floatNumber | digitPart) ('j' | 'J')
 
 let ident     							= (letter | '_') ( letter | digit | '_')*
-let commentLine 						= '#' (ident | white)+
+let comment 						= '#' (ident | whitespace)+
 
 
 
-rule read = parse
-| white											{ read lexbuf }
-| commentLine as c								{ COMMENTLINE (c) }
-| tab 										{ TAB }
+rule read state = parse
+  | e { let curr_offset = state.curr_offset in
+        let last_offset = Stack.top state.offset_stack in
+          if curr_offset < last_offset
+          then (ignore (Stack.pop state.offset_stack); DEDENT)
+          else if curr_offset > last_offset
+          then (Stack.push curr_offset state.offset_stack; INDENT)
+	else token state lexbuf }
+	
+
+and token state = parse
+  | ((whitespace* comment? newline)* whitespace* comment?) newline
+      { let lines = count_lines (lexeme lexbuf) in
+        let pos = lexbuf.lex_curr_p in
+          lexbuf.lex_curr_p <-
+            { pos with
+                pos_bol = pos.pos_cnum;
+                pos_lnum = pos.pos_lnum + lines };
+        if state.nl_ignore <= 0 then begin
+          state.curr_offset <- 0;
+          offset state lexbuf;
+          NEWLINE
+        end else
+          token state lexbuf }
+  | '\\' newline whitespace*
+      { let pos = lexbuf.lex_curr_p in
+          lexbuf.lex_curr_p <-
+            { pos with
+                pos_bol = pos.pos_cnum;
+                pos_lnum = pos.pos_lnum + 1 };
+          token state lexbuf }
+
+  | whitespace+
+{ token state lexbuf }
+| comment as c								{ COMMENTLINE (c) }
 | newline										{ NEWLINE }
 | decinteger as i				{ INTEGERLIT (int_of_string i) }
 | floatNumber as f	{ FLOATLIT (float_of_string f) }
@@ -135,8 +179,13 @@ rule read = parse
 | "$"              	 { DOLLAR }
 | "?"              	 { QUESTIONMARK }
 | eof                { EOF }
+and offset state = parse
+  | e { }
+  | ' '  { state.curr_offset <- state.curr_offset + 1; offset state lexbuf }
+  | '\t' { state.curr_offset <- state.curr_offset + 8; offset state lexbuf }
 
 {
+
 let print_token = function
 | EOF                		-> print_string "<eof>"
 | NEWLINE 					-> print_newline () 
@@ -244,5 +293,8 @@ let print_token = function
 | RPAREN             		-> print_string "< rparen >"
 | LBRACK             		-> print_string "< lbrack >"
 | RBRACK             		-> print_string "< rbrack >"
-| TAB  			 		-> print_string "tab"
+| TAB  			 	-> print_string "tab"
+| INDENT 			-> print_string "indent"
+| DEDENT			-> print_string "dedent"
+
 }
