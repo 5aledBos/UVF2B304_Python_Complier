@@ -21,7 +21,7 @@ try
 	let lexbuf = Lexing.from_channel input_file in
 	try
 		let state = Lexer_state.create () in 
-			Parser.prog (Lexer.read state) lexbuf; ;
+		Parser.prog (Lexer.read state) lexbuf; ;
 		print_string "SUCCESS";
 		print_newline();
 		
