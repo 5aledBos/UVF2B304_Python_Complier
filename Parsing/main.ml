@@ -3,6 +3,7 @@ open Parser
 open ErrorHandler
 open Lexing
 open Lexer_state
+open Oarser2
 
 (*
 let rec lexAllBuf lexbuf =
