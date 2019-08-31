@@ -1,20 +1,20 @@
-open Lexer
+open PythonLexer
 open Parser
 open ErrorHandler
 open Lexing
 open Lexer_state
-open Oarser2
+open Dump
 
-(*
-let rec lexAllBuf lexbuf =
-let lex = Lexer.read lexbuf in
+
+ 
+let rec lexAllBuf lexbuf state =
+let lex = (PythonLexer.token state) lexbuf in
 match lex with
-| EOF -> ()
+| ENDMARKER -> ()
 (*| newline ->  print_string " "; print_newline (); lexAllBuf lexbuf *)
-| _ -> print_token lex; print_string " "; lexAllBuf lexbuf
+| _ -> print_token lex; print_string "-"; lexAllBuf lexbuf state
 
- *)
-
+ 
 let compile file =
 print_string ("File "^file^" is being treated!\n");
 try
@@ -22,7 +22,9 @@ try
 	let lexbuf = Lexing.from_channel input_file in
 	try
 		let state = Lexer_state.create () in 
-		Parser.prog (Lexer.read state) lexbuf; ;
+		(*lexAllBuf lexbuf state;*)
+		let ast = Parser.prog (PythonLexer.token state) lexbuf in
+		close_in input_file;
 		print_string "SUCCESS";
 		print_newline();
 		

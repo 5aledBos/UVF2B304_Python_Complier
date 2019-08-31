@@ -296,5 +296,6 @@ let print_token = function
 | TAB  			 	-> print_string "tab"
 | INDENT 			-> print_string "indent"
 | DEDENT			-> print_string "dedent"
+| _				-> print_string "something else"
 
 }
