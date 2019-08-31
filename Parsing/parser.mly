@@ -1,53 +1,101 @@
-(* Literals *)
-%token <bool> BOOLEANLIT
-%token <float> FLOATLIT
-%token <int> INTEGERLIT
-%token <string> STRINGLIT
-%token <string> COMMENTLINE
-%token <string> KWARGS
-%token <string> ARGS
-%token <string> STRINGLONG
 
-(* Infix Operators*)
-%token PLUS MINUS TIMES INDENT DEDENT
-%token DIV AND OR XOR
-%token MOD INF SUP
-%token ISEQUAL ISNOTEQUAL
-%token SUPEQUAL INFEQUAL
-%token CONDOR CONDAND COND
-%token LSHIFT RSHIFT USHIFT
-%token NONE AS ASYNC AWAIT DEF DEL ELIF GLOBAL NONLOCAL PASS RAISE LAMBDA IS YIELD EXCEPT FROM IN NOT WITH POWER
-%token FLOORDIV BITEAND BITEOR BITEXOR BITENEGATION FUNCMETADATA FLOORDIVEQUAL AROBASQUAL POWEREQUAL DOLLAR
-%token QUESTIONMARK SHARP DOUBLEQUOTE SIMPLEQUOTE BACKSLASH
-(* Prefix Operators*)
-%token INCR DECR EXCL TILDE
-(* Assignment Operators*)
-%token EQUAL PLUSEQUAL MINUSEQUAL TIMESEQUAL
-%token DIVEQUAL ANDEQUAL OREQUAL XOREQUAL
-%token MODEQUAL LSHIFTEQUAL RSHIFTEQUAL USHIFTEQUAL
-(* Delimitors*)
-%token POINT SEMICOLON COMMA COLON LBRACE
-%token RBRACE LPAREN RPAREN LBRACK RBRACK
-(* Modifiers*)
-%token ABSTRACT PRIVATE PROTECTED PUBLIC
-%token STATIC STRICTFP SYNCHRONIZED
-%token VOLATILE TRANSIENT NATIVE FINAL
-(* Basic Types*)
-%token BYTE SHORT CHAR INT
-%token LONG FLOAT DOUBLE BOOLEAN
-(* Other Keywords*)
-%token ASSERT BREAK CASE CATCH CLASS
-%token CONTINUE DO DEFAULT ELSE ENUM
-%token FINALLY FOR IF IMPLEMENTS
-%token INSTANCEOF INTERFACE NEW PACKAGE
-%token SUPER SWITCH THIS THROW RETURN EXTENDS
-%token AROBAS THROWS TRY VOID WHILE IMPORT
-(* Special Tokens *)
-%token EOF
+/* literals */
+%token <string>   NAME
+%token <int>      INT
+%token <int>      LONGINT
+%token <float>    FLOAT
+%token <string>   IMAG
+%token <string>   STR
+
+/* layout */
+%token INDENT
+%token DEDENT
 %token NEWLINE
-%token TAB
 
-%token <string> IDENT
+/* keywords */
+%token  AND
+%token  AS
+%token  ASSERT
+%token  BREAK
+%token  CLASS
+%token  CONTINUE
+%token  DEF
+%token  DEL
+%token  ELIF
+%token  ELSE
+%token  EXCEPT
+%token  EXEC
+%token  FINALLY
+%token  FOR
+%token  FROM
+%token  GLOBAL
+%token  IF
+%token  IMPORT
+%token  IN
+%token  IS
+%token  LAMBDA
+%token  NOT
+%token  OR
+%token  PASS
+%token  PRINT
+%token  RAISE
+%token  RETURN
+%token  TRY
+%token  WHILE
+%token  WITH
+%token  YIELD
+
+/* symbols */
+%token  ADD            /* + */
+%token  SUB            /* - */
+%token  MULT           /* * */
+%token  DIV            /* / */
+%token  MOD            /* % */
+%token  POW            /* ** */
+%token  FDIV           /* // */
+%token  BITOR          /* | */
+%token  BITAND         /* & */
+%token  BITXOR         /* ^ */
+%token  BITNOT         /* ~ */
+%token  LSHIFT         /* << */
+%token  RSHIFT         /* >> */
+
+%token  EQ             /* = */
+%token  ADDEQ          /* += */
+%token  SUBEQ          /* -= */
+%token  MULTEQ         /* *= */
+%token  DIVEQ          /* /= */
+%token  MODEQ          /* %= */
+%token  POWEQ          /* **= */
+%token  FDIVEQ         /* //= */
+%token  ANDEQ          /* &= */
+%token  OREQ           /* |= */
+%token  XOREQ          /* ^= */
+%token  LSHEQ          /* <<= */
+%token  RSHEQ          /* >>= */
+
+%token  EQUAL          /* == */
+%token  NOTEQ          /* !=, <> */
+%token  LT             /* < */
+%token  GT             /* > */
+%token  LEQ            /* <= */
+%token  GEQ            /* >= */
+
+%token  LPAREN         /* ( */
+%token  RPAREN         /* ) */
+%token  LBRACK         /* [ */
+%token  RBRACK         /* ] */
+%token  LBRACE         /* { */
+%token  RBRACE         /* } */
+%token  COLON          /* : */
+%token  SEMICOL        /* ; */
+%token  DOT            /* . */
+%token  COMMA          /* , */
+%token  BACKQUOTE      /* ` */
+%token  AT             /* @ */
+
+/* eof */
+%token ENDMARKER
 
 %start prog
 %type <unit> prog 

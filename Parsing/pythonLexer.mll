@@ -1,7 +1,7 @@
 {
   open Lexer_state
   open Lexing
-  open Token
+  open Parser
 
 
   let unescaped s =
