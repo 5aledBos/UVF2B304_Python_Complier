@@ -118,6 +118,8 @@ and _token state = parse
         | "break"    -> BREAK 
         | "class"    -> CLASS 
         | "continue" -> CONTINUE 
+	| "True"     -> BOOLEANLIT(true)
+	| "False"    -> BOOLEANLIT(false)
         | "def"      -> DEF 
         | "del"      -> DEL 
         | "elif"     -> ELIF 
@@ -169,11 +171,11 @@ and _token state = parse
 
   | '='     { EQ }
 
-  | "**"    { POW }
+  | "**"    { POWER }
   | "//"    { FDIV }
   | '+'     { ADD }
-  | '-'     { SUB }
-  | '*'     { MULT }
+  | '-'     { MINUS }
+  | '*'     { TIMES }
   | '/'     { DIV }
   | '%'     { MOD }
   | '|'     { BITOR }
@@ -190,7 +192,7 @@ and _token state = parse
   | '{'     { ignore_nl state; LBRACE }
   | '}'     { aware_nl state; RBRACE }
   | ':'     { COLON }
-  | ';'     { SEMICOL }
+  | ';'     { SEMICOLON }
   | '.'     { DOT }
   | ','     { COMMA }
   | '`'     { BACKQUOTE }
@@ -200,15 +202,15 @@ and _token state = parse
   | decimalinteger as n longintpostfix
       { LONGINT (int_of_string n) }
   | decimalinteger as n
-      { INT (int_of_string n) }
+      { INTEGERLIT (int_of_string n) }
   | octinteger as n longintpostfix
       { LONGINT (int_of_string ("0o" ^ n)) }
   | octinteger as n
-      { INT (int_of_string ("0o" ^ n)) }
+      { INTEGERLIT (int_of_string ("0o" ^ n)) }
   | hexinteger as n longintpostfix
       { LONGINT (int_of_string n) }
   | hexinteger as n
-      { INT (int_of_string n) }
+      { INTEGERLIT (int_of_string n) }
   | floatnumber as n
       { FLOAT (float_of_string n) }
   | imagnumber as n
@@ -216,7 +218,7 @@ and _token state = parse
   | '0' longintpostfix
       { LONGINT (0) }
   | '0'
-      { INT (0) }
+      { INTEGERLIT (0) }
 
   | stringprefix '\''
       { sq_shortstrlit state 0 lexbuf }
@@ -236,34 +238,34 @@ and offset state = parse
   | '\t' { state.curr_offset <- state.curr_offset + 8; offset state lexbuf }
 
 and sq_shortstrlit state pos = parse
-  | (([^ '\\' '\r' '\n' '\''] | escapeseq)* as s) '\'' { STR (unescaped s) }
+  | (([^ '\\' '\r' '\n' '\''] | escapeseq)* as s) '\'' { STRINGLIT (unescaped s) }
 
 and sq_longstrlit state pos = shortest
 | (([^ '\\'] | escapeseq)* as s) "'''"
     { let lines = count_lines s in
       let curpos = lexbuf.lex_curr_p in
         lexbuf.lex_curr_p <- { curpos with pos_lnum = curpos.pos_lnum + lines };
-        STR (unescaped s) }
+        STRINGLIT (unescaped s) }
 
 and dq_shortstrlit state pos = parse
-  | (([^ '\\' '\r' '\n' '\"'] | escapeseq)* as s) '"' { STR (unescaped s) }
+  | (([^ '\\' '\r' '\n' '\"'] | escapeseq)* as s) '"' { STRINGLIT (unescaped s) }
 
 and dq_longstrlit state pos = shortest
   | (([^ '\\'] | escapeseq)* as s) "\"\"\""
       { let lines = count_lines s in
         let curpos = lexbuf.lex_curr_p in
           lexbuf.lex_curr_p <- { curpos with pos_lnum = curpos.pos_lnum + lines };
-          STR (unescaped s) }
+          STRINGLIT (unescaped s) }
 {
 let print_token = function
 	| ENDMARKER 					-> print_string "<end of file>"
 	| NEWLINE 					-> print_newline () 
 	| NAME id           				-> print_string "(ident : "; print_string id; print_string ")"
-	| INT i						-> print_string "(int : "; print_int i; print_string ")"
+	| INTEGERLIT i						-> print_string "(int : "; print_int i; print_string ")"
 	| LONGINT i					-> print_string "(longint : "; print_int i; print_string ")"
 	| FLOAT i					-> print_string "(float : "; print_float i; print_string ")"
 	| IMAG i					-> print_string "(imaginary : "; print_string i; print_string ")"
-	| STR s						-> print_string "(longint : "; print_string s; print_string ")"
+	| STRINGLIT s						-> print_string "(longint : "; print_string s; print_string ")"
 	| INDENT					-> print_string "< indent >"
 	| DEDENT					-> print_string "< dedent >"
 	| AND						-> print_string "< and >"
@@ -299,11 +301,11 @@ let print_token = function
 	| YIELD						-> print_string "< yield >"
 
 	| ADD						-> print_string "< add >"
-	| SUB						-> print_string "< sub >"
-	| MULT						-> print_string "< mult >"
+	| MINUS						-> print_string "< MINUS >"
+	| TIMES						-> print_string "< times >"
 	| DIV						-> print_string "< div >"
 	| MOD						-> print_string "< mod >"
-	| POW						-> print_string "< pow >"
+	| POWER						-> print_string "< power >"
 	| FDIV						-> print_string "< floordiv >"
 	| BITOR						-> print_string "< bitor >"
 	| BITAND						-> print_string "< bitand >"
@@ -313,7 +315,7 @@ let print_token = function
 	| RSHIFT						-> print_string "< rshift >"
 	| EQ						-> print_string "< eq >"
 	| ADDEQ						-> print_string "< addeq >"
-	| SUBEQ						-> print_string "< subeq >"
+	| SUBEQ						-> print_string "< MINUSeq >"
 	| MULTEQ						-> print_string "< multeq >"
 	| DIVEQ						-> print_string "< diveq >"
 	| MODEQ						-> print_string "< modeq >"
@@ -337,7 +339,7 @@ let print_token = function
 	| LBRACE						-> print_string "< lbrace >"
 	| RBRACE						-> print_string "< rbrace >"
 	| COLON						-> print_string "< colon >"
-	| SEMICOL						-> print_string "< semicolon >"
+	| SEMICOLON						-> print_string "< semicolon >"
 	| DOT						-> print_string "< dot >"
 	| COMMA						-> print_string "< comma >"
 	| BACKQUOTE						-> print_string "< backquote >"

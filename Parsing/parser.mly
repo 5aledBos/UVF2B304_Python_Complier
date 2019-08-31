@@ -1,11 +1,12 @@
 
 /* literals */
 %token <string>   NAME
-%token <int>      INT
+%token <int>      INTEGERLIT
 %token <int>      LONGINT
 %token <float>    FLOAT
 %token <string>   IMAG
-%token <string>   STR
+%token <string>   STRINGLIT
+%token <bool>	  BOOLEANLIT
 
 /* layout */
 %token INDENT
@@ -16,6 +17,7 @@
 %token  AND
 %token  AS
 %token  ASSERT
+%token  ASYNC
 %token  BREAK
 %token  CLASS
 %token  CONTINUE
@@ -45,13 +47,15 @@
 %token  WITH
 %token  YIELD
 
+%token FUNCMETADATA
+
 /* symbols */
 %token  ADD            /* + */
-%token  SUB            /* - */
-%token  MULT           /* * */
+%token  MINUS            /* - */
+%token  TIMES           /* * */
 %token  DIV            /* / */
 %token  MOD            /* % */
-%token  POW            /* ** */
+%token  POWER            /* ** */
 %token  FDIV           /* // */
 %token  BITOR          /* | */
 %token  BITAND         /* & */
@@ -88,7 +92,7 @@
 %token  LBRACE         /* { */
 %token  RBRACE         /* } */
 %token  COLON          /* : */
-%token  SEMICOL        /* ; */
+%token  SEMICOLON      /* ; */
 %token  DOT            /* . */
 %token  COMMA          /* , */
 %token  BACKQUOTE      /* ` */
@@ -96,6 +100,10 @@
 
 /* eof */
 %token ENDMARKER
+
+%token NONE
+%token AWAIT
+%token NONLOCAL
 
 %start prog
 %type <unit> prog 
@@ -106,7 +114,7 @@ prog:
 
 
 decorator:
-	| AROBAS dotted_name arglist_paren_opt NEWLINE {}
+	| AT dotted_name arglist_paren_opt NEWLINE {}
 	
 arglist_paren_opt:
 	| {}
@@ -135,7 +143,7 @@ async_funcdef:
 	| ASYNC funcdef {}
 	
 funcdef:
-	| DEF IDENT parameters arrow_test_opt COLON suite {}
+	| DEF NAME parameters arrow_test_opt COLON suite {}
 	
 arrow_test_opt:
 	| {}
@@ -185,7 +193,7 @@ tfpdef_opt:
 	| tfpdef {}
 
 tfpdef:
-	| IDENT colon_test_opt {}
+	| NAME colon_test_opt {}
 	
 colon_test_opt:
 	| {}
@@ -228,10 +236,10 @@ vfpdef_opt:
 	| {}
 	| vfpdef {}
 vfpdef:
-	| IDENT {}
+	| NAME {}
 
 file_input:
-	| new_line_stmt* EOF {}
+	| new_line_stmt* ENDMARKER {}
 
 new_line_stmt:
 	| NEWLINE {}
@@ -314,11 +322,11 @@ import_name_block:
 	| import_as_names {}
 	
 import_as_name:
-	| IDENT as_name_opt {}
+	| NAME as_name_opt {}
 	
 as_name_opt:
 	| {}
-	| AS IDENT {}
+	| AS NAME {}
 	
 dotted_as_name:
 	| dotted_name as_name_opt {}
@@ -355,17 +363,17 @@ dots_name_import:
 	| dots_opt dotted_name {}
 	
 dotted_name:
-	| IDENT dot_name_opt {}
+	| NAME dot_name_opt {}
 	
 dot_name_opt:
 	| {}
-	| POINT IDENT {}
+	| DOT NAME {}
 	
 global_stmt:
-	| GLOBAL IDENT comma_name_opt {}
+	| GLOBAL NAME comma_name_opt {}
 	
 nonlocal_stmt:
-	| NONLOCAL IDENT comma_name_opt {}
+	| NONLOCAL NAME comma_name_opt {}
 	
 assert_stmt:
 	| ASSERT test comma_test_opt {}
@@ -379,15 +387,15 @@ dots_opt:
 	| dots {}
 
 dots:
-	| POINT {}
-	| POINT POINT POINT {}
+	| DOT {}
+	| DOT DOT DOT {}
 
 comma_name_opt:
 	| {}
 	| comma_name comma_name_opt {}
 
 comma_name:
-	| COMMA IDENT {}
+	| COMMA NAME {}
 	
 compound_stmt:
 	| if_stmt {}
@@ -498,17 +506,17 @@ assign_stmt:
 	| EQUAL testlist_star_expr {}
 
 augassign:
-	| PLUSEQUAL {}
-	| MINUSEQUAL {}
-	| TIMESEQUAL {}
-	| DIVEQUAL {}
-	| ANDEQUAL {}
-	| OREQUAL {}
-	| XOREQUAL {}
-	| RSHIFTEQUAL {}
-	| LSHIFTEQUAL {}
-	| POWEREQUAL {}
-	| FLOORDIVEQUAL {}
+	| ADDEQ {}
+	| SUBEQ {}
+	| POWEQ {}
+	| DIVEQ {}
+	| ANDEQ {}
+	| OREQ {}
+	| XOREQ {}
+	| RSHEQ {}
+	| LSHEQ {}
+	| POWEQ {}
+	| FDIVEQ {}
 
 yield_or_testlist:
 	| testlist {}
@@ -552,19 +560,19 @@ expr:
 	| xor_expr xor_expr_opt* {}
 
 xor_expr_opt:
-	| BITEOR xor_expr {}
+	| BITOR xor_expr {}
 
 xor_expr:
 	| and_expr and_expr_opt* {}
 
 and_expr_opt:
-	| BITEXOR and_expr {}
+	| BITXOR and_expr {}
 
 and_expr:
 	| shift_expr shift_expr_opt* {}
 
 shift_expr_opt:
-	| BITEAND shift_expr {}
+	| BITAND shift_expr {}
 
 shift_expr:
 	| arith_expr arith_expr_opt* {}
@@ -577,7 +585,7 @@ arith_expr:
 	| term term_opt* {}
 
 term_opt:
-	| PLUS term {}
+	| ADD term {}
 	| MINUS term {}
 
 term:
@@ -585,9 +593,9 @@ term:
 
 factor_opt:
 	| TIMES factor {}
-	| AROBAS factor {}
+	| AT factor {}
 	| DIV factor {}
-	| FLOORDIV factor {}
+	| FDIV factor {}
 	| MOD factor {}
 
 factor:
@@ -595,9 +603,9 @@ factor:
 	| power {}
 
 operator_factor:
-	| PLUS factor {}
+	| ADD factor {}
 	| MINUS factor {}
-	| BITENEGATION factor {}
+	| BITNOT factor {}
 
 power:
 	| atom_expr power_factor? {}
@@ -612,10 +620,10 @@ atom:
 	| LPAREN yield_or_testlist_expr? RPAREN {} 
 	| LBRACK testlist_comp? RBRACK {}
 	(*| LBRACE dictorsetmaker RBRACE {}*)
-	| IDENT {}
+	| NAME {}
 	| INTEGERLIT {}
 	| STRINGLIT+ {}
-	| POINT POINT POINT {}
+	| DOT DOT DOT {}
 	| NONE {}
 	| BOOLEANLIT {}
 
@@ -635,7 +643,7 @@ yield_arg:
 trailer:
 	| LPAREN arglist? RPAREN {}
 	| LBRACK subscriptlist? RBRACK {}
-	| POINT IDENT {}
+	| DOT NAME {}
 
 arglist:
 	| argument argument_opts comma_opt {}
@@ -700,12 +708,12 @@ comp_op_expr_opt:
 	| comp_op expr {}
 
 comp_op:
-	| INF {}
-	| SUP {}
-	| ISEQUAL {}
-	| SUPEQUAL {}
-	| INFEQUAL {}
-	| ISNOTEQUAL {}
+	| LT {}
+	| GT {}
+	| EQUAL {}
+	| GEQ {}
+	| LEQ {}
+	| NOTEQ {}
 	| IN {}
 	| NOT IN {}
 	| IS {}
@@ -774,7 +782,7 @@ comma_test:
 	| COMMA test {}
 	
 classdef:
-	| CLASS IDENT arglist_paren_opt COLON suite {}
+	| CLASS NAME arglist_paren_opt COLON suite {}
 	
 comp_iter:
 	| comp_for {}
