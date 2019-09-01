@@ -3,7 +3,7 @@ open Parser
 open ErrorHandler
 open Lexing
 open Lexer_state
-open Dump
+open Interpret
 
 
  
@@ -23,8 +23,9 @@ try
 	try
 		let state = Lexer_state.create () in 
 		(*lexAllBuf lexbuf state;*)
-		let ast = Parser.prog (PythonLexer.token state) lexbuf in
+		let ast = Parser.file_input (PythonLexer.token state) lexbuf in
 		close_in input_file;
+		Interpret.interp ast;
 		print_string "SUCCESS";
 		print_newline();
 		

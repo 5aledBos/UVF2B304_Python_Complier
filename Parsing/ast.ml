@@ -15,10 +15,10 @@ and stmt =
   	| ClassDef of identifier *stmt list  
 	| Return of expr
   	| Delete of expr list
-  	| Assign of expr list * expr
+  	| Assign of identifier * expr
   	| AugAssign of expr * operator * expr
 
-  	| Print of expr option * expr list * bool 
+  	| Print of expr
   	| For of expr * expr * stmt list * stmt list
   	| While of  expr * stmt list * stmt list 
   	| If of expr * stmt list * stmt list 
@@ -48,7 +48,7 @@ and expr =
   | GeneratorExp of expr * comprehension list
   | Yield of expr option
   | Compare of expr * cmpop list * expr list
-  | Call of expr * expr list * keyword list * expr option * expr option 
+  | Call of identifier * identifier * arguments
   | Repr of expr
   | Num of number
   | Str of string
@@ -114,7 +114,7 @@ and comprehension = expr * expr * expr list
 and excepthandler = 
 	| ExceptHandler of expr option * expr option * stmt list
 
-and arguments = expr list * identifier option * identifier option * expr list 
+and arguments = expr list
 
 and keyword =  identifier * expr
 
