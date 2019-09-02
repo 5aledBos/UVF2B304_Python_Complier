@@ -54,6 +54,7 @@ let _ = List.iter (fun (kwd, tok) -> Hashtbl.add keyword_table kwd tok)
 	"yield", 		YIELD;
 	"super",		SUPER;
 	"await", 		AWAIT;
+	"print",		PRINT;
 ]
 
 }
@@ -296,6 +297,7 @@ let print_token = function
 | TAB  			 	-> print_string "tab"
 | INDENT 			-> print_string "indent"
 | DEDENT			-> print_string "dedent"
+| PRINT				-> print_string " < print > "
 | _				-> print_string "something else"
 
 }

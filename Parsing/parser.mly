@@ -160,6 +160,8 @@ value:
 test :
 	| name { Name($1,Load) }
 	| value { $1 }
+	| name DOT name {Name($1^"."^$3,Load)}
+	| call { $1 }
 
 
 (*compound statement*)
