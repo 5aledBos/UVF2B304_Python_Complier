@@ -29,13 +29,18 @@ let get_value = function
 	| Vstring s -> s
 	| _ -> "not string"
 
+let binop_value op v1 v2 = 
+	match op, v1, v2 with
+  	| Add, Vint n1, Vint n2 -> Vint (n1+n2)
+    	| _ -> error "unsupported operand types"
+
 exception Return of value
 type ctx = (string, value) Hashtbl.t
 
 type clazz = {
 	name : string;
 	attributes : ctx;
-	methods : (string, stmt list) Hashtbl.t;
+	methods : (string, identifier list*stmt list) Hashtbl.t;
 	objects: string list;
 }
 
@@ -60,25 +65,26 @@ let classes = (Hashtbl.create 16 : (string, clazz) Hashtbl.t)
 let rec expr global_ctx clazz = function
 	| Str(s) -> Vstring s
 	| Num(Int s) -> Vint s
+	| BinOp(e1, Add, e2) -> binop_value Add (expr global_ctx clazz e1) (expr global_ctx clazz e2)
 	| Call(className, functionName, arguments) -> 
-
 			 	if className <> functionName
-				
 			 	then 
-					if Hashtbl.mem clazz.attributes className = true then
+					if Hashtbl.mem clazz.attributes className = true then (* call on an object : className here is the name of the object *)
 						let objName = Hashtbl.find clazz.attributes className in
 						let obj = Hashtbl.find global_objects (get_value objName) in
 						let targetClass = Hashtbl.find global_ctx obj.className in
 						if Hashtbl.mem targetClass.methods functionName = true then
-							let body = Hashtbl.find targetClass.methods functionName in
-							begin try List.iter (stmt global_ctx targetClass) body; Vnone with Return v -> v end	
+							let args, body = Hashtbl.find targetClass.methods functionName in
+							begin try List.iter (obj_stmt global_ctx obj) body; Vnone with Return v -> v end	
 						else
 							error ("Unbound Function : "^functionName^" with class : "^obj.className)
 					else error ("Unknown attribute")
-			 	else if Hashtbl.mem clazz.methods className = true then
-				 	 let body = Hashtbl.find clazz.methods className in
+			 	else if Hashtbl.mem clazz.methods className = true then (* global function call *)
+					 let args, body = Hashtbl.find clazz.methods className in
+					 if List.length args <> List.length arguments then error ("wrong number of arguments passed to the function : "^className);
+					 List.iter2 (fun x e -> Hashtbl.add clazz.attributes x (expr global_ctx clazz e)) args arguments;
 				  	 begin try List.iter (stmt global_ctx clazz) body; Vnone with Return v -> v end	
-				else if Hashtbl.mem global_ctx className = true then
+				else if Hashtbl.mem global_ctx className = true then (* Object creation *)
 					let targetClass = Hashtbl.find global_ctx className in
 					let nbrOfObjects = (List.length targetClass.objects) + 1 in
 					let o = {
@@ -95,7 +101,7 @@ let rec expr global_ctx clazz = function
 				let sl = String.split_on_char '.' s in
 				if Hashtbl.mem clazz.attributes s = true
 				then Hashtbl.find clazz.attributes s
-				else if List.length sl = 2 then
+				else if List.length sl = 2 then (* object.attribute *)
 					if Hashtbl.mem clazz.attributes (List.hd sl) <> true 
 					then error("Object "^(List.hd sl)^" unknown")
 					else
@@ -106,16 +112,18 @@ let rec expr global_ctx clazz = function
 						else
 							Hashtbl.find obj.objAttributes (List.nth sl 1)		
 				else
-					error ("attribute not member of : "^clazz.name)
+					error ("attribute "^ s ^" not member of : "^clazz.name)
 	| _ -> Vnone
 
 
-
+and obj_stmt global_ctx obj = function
+	| Assign(targets, value) -> Hashtbl.replace obj.objAttributes targets (expr global_ctx (Hashtbl.find global_ctx obj.className) value)
+ 
 and stmt global_ctx clazz = function
 	| Assign(targets, value) -> Hashtbl.replace clazz.attributes targets (expr global_ctx clazz value)
 				
 	| FunctionDef(identifier, arguments, body) -> 
-				Hashtbl.add clazz.methods identifier body;
+				Hashtbl.add clazz.methods identifier (arguments,body);
 				Hashtbl.replace global_ctx clazz.name clazz;
 	| Print(e) -> print_value (expr global_ctx clazz e); printf "@."
 				
@@ -136,7 +144,6 @@ let f body global_ctx =
 	match body with
 	 | ClassDef(name, body) -> 
 				add_class global_ctx name body;
-				print_newline()
 	 | _ -> stmt global_ctx (Hashtbl.find global_ctx "Module")  body
 	 
 

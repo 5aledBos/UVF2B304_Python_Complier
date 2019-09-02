@@ -265,7 +265,7 @@ let print_token = function
 	| LONGINT i					-> print_string "(longint : "; print_int i; print_string ")"
 	| FLOAT i					-> print_string "(float : "; print_float i; print_string ")"
 	| IMAG i					-> print_string "(imaginary : "; print_string i; print_string ")"
-	| STRINGLIT s						-> print_string "(longint : "; print_string s; print_string ")"
+	| STRINGLIT s						-> print_string "(string : "; print_string s; print_string ")"
 	| INDENT					-> print_string "< indent >"
 	| DEDENT					-> print_string "< dedent >"
 	| AND						-> print_string "< and >"

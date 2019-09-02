@@ -11,7 +11,7 @@ type modul =
 	| Expression of expr list
 
 and stmt =
-  	| FunctionDef of identifier * arguments * stmt list
+  	| FunctionDef of identifier * identifier list * stmt list
   	| ClassDef of identifier *stmt list  
 	| Return of expr
   	| Delete of expr list
@@ -85,7 +85,7 @@ and operator =
 	| Mod 
 	| Pow 
 	| LShift
-    | RShift 
+    	| RShift 
 	| BitOr 
 	| BitXor 
 	| BitAnd 
