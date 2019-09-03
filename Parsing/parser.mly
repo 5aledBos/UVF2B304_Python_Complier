@@ -151,6 +151,9 @@ expr_stmt:
 arith_expr:
 	| test ADD test {BinOp($1,Add,$3)}
 
+conditional_expr:
+	| test EQUAL test {Compare($1, Eq, $3)}
+
 call :
 	| name LPAREN separated_list(COMMA, test) RPAREN { Call($1, $1, $3) }
 	| name DOT name LPAREN separated_list(COMMA, test) RPAREN { Call($1, $3, $5) }
@@ -172,6 +175,11 @@ test :
 compound_stmt:
 	| funcdef { $1 }
 	| classdef { $1 }
+	| if_stmt { $1 }
+
+if_stmt:
+	| IF conditional_expr COLON suite { If($2, $4, []) }
+	| IF conditional_expr COLON suite ELSE COLON suite { If($2, $4, $7) } 
 
 classdef:
 	| CLASS name COLON suite { ClassDef($2, $4) }

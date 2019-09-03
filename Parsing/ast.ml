@@ -14,7 +14,6 @@ and stmt =
   	| FunctionDef of identifier * identifier list * stmt list
   	| ClassDef of identifier *stmt list  
 	| Return of expr
-  	| Delete of expr list
   	| Assign of identifier * expr
   	| AugAssign of expr * operator * expr
 
@@ -22,16 +21,7 @@ and stmt =
   	| For of expr * expr * stmt list * stmt list
   	| While of  expr * stmt list * stmt list 
   	| If of expr * stmt list * stmt list 
-  	| With of expr * expr option * stmt list 
 
-  	| Raise of expr option * expr option * expr option
-  	| TryExcept of stmt list * excepthandler list * stmt list 
-  	| TryFinally of stmt list * stmt list 
-  	| Assert of expr * expr option
-  	| Import of alias list
-  	| ImportFrom of identifier * alias list * int option 
-    	| Exec of expr * expr option * expr option
-    	| Global of identifier list
   	| Expr of expr
     	| Pass  
   	| Break 
@@ -47,7 +37,7 @@ and expr =
   | ListComp of expr * comprehension list
   | GeneratorExp of expr * comprehension list
   | Yield of expr option
-  | Compare of expr * cmpop list * expr list
+  | Compare of expr * cmpop * expr
   | Call of identifier * identifier * arguments
   | Repr of expr
   | Num of number
@@ -73,7 +63,7 @@ and slice =
   | Index of expr
 
 and boolop = 
-	|And 
+	| And 
 	| Or
 
 

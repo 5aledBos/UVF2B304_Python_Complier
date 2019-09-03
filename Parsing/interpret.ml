@@ -13,6 +13,16 @@ type value =
   | Vstring of string
   | Vlist of value array
 
+let is_false = function
+  | Vnone
+  | Vbool false
+  | Vstring ""
+  | Vlist [||] -> true
+  | Vint n -> n = 0
+  | _ -> false
+
+let is_true v = not (is_false v)
+
 let rec print_value = function
   | Vnone -> printf "None"
   | Vbool true -> printf "True"
@@ -27,12 +37,31 @@ let rec print_value = function
 
 let get_value = function
 	| Vstring s -> s
+	| Vint s -> string_of_int s
 	| _ -> "not string"
+
+let rec compare_list a1 n1 a2 n2 i =
+  if i = n1 && i = n2 then 0
+  else if i = n1 then -1
+  else if i = n2 then 1
+  else let c = compare a1.(i) a2.(i) in
+       if c <> 0 then c else compare_list a1 n1 a2 n2 (i + 1)
+
+let rec compare_value v1 v2 = match v1, v2 with
+  | Vlist a1, Vlist a2 ->
+    compare_list a1 (Array.length a1) a2 (Array.length a2) 0
+  | _ -> compare v1 v2
 
 let binop_value op v1 v2 = 
 	match op, v1, v2 with
   	| Add, Vint n1, Vint n2 -> Vint (n1+n2)
     	| _ -> error "unsupported operand types"
+
+
+let comop_value op v1 v2 =
+	match op, v1, v2 with
+ 	| Eq, _, _ -> Vbool (compare_value v1 v2 = 0)
+	| _ -> error "unsupported op type"
 
 exception Return of value
 type ctx = (string, value) Hashtbl.t
@@ -66,6 +95,8 @@ let rec expr global_ctx clazz = function
 	| Str(s) -> Vstring s
 	| Num(Int s) -> Vint s
 	| BinOp(e1, Add, e2) -> binop_value Add (expr global_ctx clazz e1) (expr global_ctx clazz e2)
+	| Compare(e1, Eq, e2) -> 
+				comop_value Eq (expr global_ctx clazz e1) (expr global_ctx clazz e2)
 	| Call(className, functionName, arguments) -> 
 			 	if className <> functionName
 			 	then 
@@ -77,7 +108,8 @@ let rec expr global_ctx clazz = function
 							let args, body = Hashtbl.find targetClass.methods functionName in
 							if List.length args <> List.length arguments then error ("wrong number of arguments passed to the function : "^functionName^" of the class : "^obj.className);
 					 		List.iter2 (fun x e -> Hashtbl.replace targetClass.attributes x (expr global_ctx clazz e)) args arguments;
-							begin try List.iter (obj_stmt global_ctx obj) body; Vnone with Return v -> v end	
+							begin try List.iter (obj_stmt global_ctx obj) body; Vnone with Return v -> v end
+							(** TODO :: delete function local attributes after running statements **)	
 						else
 							error ("Unbound Function : "^functionName^" with class : "^obj.className)
 					else error ("Unknown attribute")
@@ -112,7 +144,9 @@ let rec expr global_ctx clazz = function
 and obj_expr global_ctx obj = function
 	| Name(s,param) -> 
 			if Hashtbl.mem obj.objAttributes s = true
-			then Hashtbl.find obj.objAttributes s
+			then 
+				let v = Hashtbl.find obj.objAttributes s in 
+				Hashtbl.find obj.objAttributes s
 			else error("attribute "^ s ^" not member of : "^obj.className)
 
 
@@ -128,7 +162,8 @@ and stmt global_ctx clazz = function
 				Hashtbl.replace global_ctx clazz.name clazz;
 	| Print(e) -> print_value (expr global_ctx clazz e); printf "@."
 	| Return(e) -> raise( Return (expr global_ctx clazz e) )
-				
+	| If(e, s1, s2) -> 
+			if is_true (expr global_ctx clazz e) then List.iter (stmt global_ctx clazz) s1 else List.iter (stmt global_ctx clazz) s2	
 	| _ -> print_string "not implemented yet !";print_newline()
 
 
