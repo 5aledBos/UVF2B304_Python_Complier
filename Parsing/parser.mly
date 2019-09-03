@@ -123,7 +123,7 @@ statement_list:
 
 stmt_list:
 	| { [] }
-	| stmt stmt_list {$1 @ $2 }
+	| stmt stmt_list { $1 @ $2 }
 
 stmt:
 	| simple_stmt { $1 }
@@ -137,29 +137,32 @@ simple_stmt:
 small_stmt:
 	| expr_stmt { $1 }
 	| print_stmt { $1 }
+	| return_stmt { $1 }
 
 
-
+return_stmt:
+	| RETURN test { Return($2) }
 
 expr_stmt:
-	| name EQ value { Assign( $1, $3) }
-	| name EQ call { Assign($1, $3) }
+	| name EQ test { Assign( $1, $3) }
 	| call { Assign("None", $1) }
+	| name EQ arith_expr { Assign( $1 , $3 ) }
+
+arith_expr:
+	| test ADD test {BinOp($1,Add,$3)}
 
 call :
-	| name parameters { Call($1, $1, $2) }
-	| name DOT name parameters { Call($1, $3, $4) }
+	| name LPAREN separated_list(COMMA, test) RPAREN { Call($1, $1, $3) }
+	| name DOT name LPAREN separated_list(COMMA, test) RPAREN { Call($1, $3, $5) }
 
 print_stmt:
 	| PRINT LPAREN test RPAREN { Print($3) }
 
-value:
-	| INTEGERLIT {Num(Int($1))}
-	| STRINGLIT { Str($1) }
+
 
 test :
-	| name { Name($1,Load) }
 	| value { $1 }
+	| name { Name($1,Load) }
 	| name DOT name {Name($1^"."^$3,Load)}
 	| call { $1 }
 
@@ -179,6 +182,10 @@ funcdef:
 name:
 	| NAME { $1 }
 
+value:
+	| INTEGERLIT { Num(Int($1))}
+	| STRINGLIT { Str($1) }
+
 
 suite:
 	| simple_stmt { $1 }
@@ -189,14 +196,13 @@ parameters:
 
 
 arglist:
-	| {[]}
-	| fpdef { [$1] }
+	| separated_list(COMMA, name) { $1 }
 (*	| fpdef COMMA arglist {
 			match $3 with
 			  | args -> $1::args}*)
 
 fpdef:
-	| NAME { Name($1, Param) }
+	| NAME { $1 }
 	(*| LPAREN fplist RPAREN { $1 }*)
 
 fplist:

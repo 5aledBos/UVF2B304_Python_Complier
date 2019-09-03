@@ -41,7 +41,7 @@ type clazz = {
 	name : string;
 	attributes : ctx;
 	methods : (string, identifier list*stmt list) Hashtbl.t;
-	objects: string list;
+	mutable objects: string list;
 }
 
 type global_ctx = (string, clazz) Hashtbl.t
@@ -75,6 +75,8 @@ let rec expr global_ctx clazz = function
 						let targetClass = Hashtbl.find global_ctx obj.className in
 						if Hashtbl.mem targetClass.methods functionName = true then
 							let args, body = Hashtbl.find targetClass.methods functionName in
+							if List.length args <> List.length arguments then error ("wrong number of arguments passed to the function : "^functionName^" of the class : "^obj.className);
+					 		List.iter2 (fun x e -> Hashtbl.replace targetClass.attributes x (expr global_ctx clazz e)) args arguments;
 							begin try List.iter (obj_stmt global_ctx obj) body; Vnone with Return v -> v end	
 						else
 							error ("Unbound Function : "^functionName^" with class : "^obj.className)
@@ -93,7 +95,7 @@ let rec expr global_ctx clazz = function
 						objAttributes = Hashtbl.copy targetClass.attributes;
 					} in
 					Hashtbl.replace global_objects o.objName o;
-					List.append targetClass.objects [o.objName];
+					targetClass.objects <- targetClass.objects@[o.objName];
 					Vstring o.objName
  				else error ("function or Constructor : "^className^" is not a member of "^clazz.name)
 
@@ -102,22 +104,21 @@ let rec expr global_ctx clazz = function
 				if Hashtbl.mem clazz.attributes s = true
 				then Hashtbl.find clazz.attributes s
 				else if List.length sl = 2 then (* object.attribute *)
-					if Hashtbl.mem clazz.attributes (List.hd sl) <> true 
-					then error("Object "^(List.hd sl)^" unknown")
-					else
-						let objName = Hashtbl.find clazz.attributes (List.hd sl) in
-						let obj = Hashtbl.find global_objects (get_value objName) in
-						if Hashtbl.mem obj.objAttributes (List.nth sl 1) <> true 
-						then error("attribute not member of : "^obj.className)
-						else
-							Hashtbl.find obj.objAttributes (List.nth sl 1)		
+					error("use accessors to access class attributes")	
 				else
 					error ("attribute "^ s ^" not member of : "^clazz.name)
 	| _ -> Vnone
 
+and obj_expr global_ctx obj = function
+	| Name(s,param) -> 
+			if Hashtbl.mem obj.objAttributes s = true
+			then Hashtbl.find obj.objAttributes s
+			else error("attribute "^ s ^" not member of : "^obj.className)
+
 
 and obj_stmt global_ctx obj = function
 	| Assign(targets, value) -> Hashtbl.replace obj.objAttributes targets (expr global_ctx (Hashtbl.find global_ctx obj.className) value)
+	| Return(e) -> raise( Return (obj_expr global_ctx obj e) )
  
 and stmt global_ctx clazz = function
 	| Assign(targets, value) -> Hashtbl.replace clazz.attributes targets (expr global_ctx clazz value)
@@ -126,6 +127,7 @@ and stmt global_ctx clazz = function
 				Hashtbl.add clazz.methods identifier (arguments,body);
 				Hashtbl.replace global_ctx clazz.name clazz;
 	| Print(e) -> print_value (expr global_ctx clazz e); printf "@."
+	| Return(e) -> raise( Return (expr global_ctx clazz e) )
 				
 	| _ -> print_string "not implemented yet !";print_newline()
 

@@ -22,8 +22,8 @@ try
 	let lexbuf = Lexing.from_channel input_file in
 	try
 		let state = Lexer_state.create () in 
-		(*lexAllBuf lexbuf state;*)
-		let ast = Parser.file_input (PythonLexer.token state) lexbuf in
+		(*lexAllBuf lexbuf state;
+*)		let ast = Parser.file_input (PythonLexer.token state) lexbuf in
 		close_in input_file;
 		Interpret.interp ast;
 		print_string "SUCCESS";
