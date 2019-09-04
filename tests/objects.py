@@ -21,8 +21,8 @@ class MyClass:
 				print(i*attr1)
 		print("end run")
 
-a = MyClass(1, [2,5,8,5,4,3,33,0,9])
-b = MyClass(1, [2,5,8,5,4,3,33,0,9])
+a = MyClass(1, [2, 5, 8, 5, 4, 3, 33, 0, 9])
+b = MyClass(1, [2, 5, 8, 5, 4, 3, 33, 0, 9])
 
 a.run()
 

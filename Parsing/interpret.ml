@@ -111,6 +111,12 @@ let rec expr global_ctx clazz = function
 	| Num(Int s) -> Vint s
 	| Bool(s) -> Vbool s
 	| BinOp(e1, op , e2) -> binop_value op (expr global_ctx clazz e1) (expr global_ctx clazz e2)
+	| BoolOp(e1, And, e2) ->
+				let v1 = expr global_ctx clazz e1 in
+				if is_true v1 then expr global_ctx clazz e2 else v1
+	| BoolOp(e1, Or, e2) -> 
+				let v1 = expr global_ctx clazz e1 in
+				if is_false v1 then expr global_ctx clazz e2 else v1
 	| Compare(e1, op, e2) -> 
 				comop_value op (expr global_ctx clazz e1) (expr global_ctx clazz e2)
 	| Call(className, functionName, arguments) -> 

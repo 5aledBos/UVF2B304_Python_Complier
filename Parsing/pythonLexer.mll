@@ -62,6 +62,8 @@ let print_token = function
 	| IN						-> print_string "< in >"
 	| PRINT						-> print_string "< print >"
 	| RETURN					-> print_string "< return >"
+	| AND						-> print_string "< and >"
+	| OR						-> print_string "< or >"
 
 	| ADD						-> print_string "< add >"
 	| MINUS						-> print_string "< MINUS >"
@@ -165,6 +167,8 @@ and _token state = parse
   | identifier as id
       {	match id with
         | "class"    -> CLASS 
+	| "and"      -> AND
+	| "or"	     -> OR
         | "continue" -> CONTINUE 
 	| "True"     -> BOOLEANLIT(true)
 	| "False"    -> BOOLEANLIT(false)

@@ -23,9 +23,8 @@ and stmt =
   	| Expr of expr
 
 and expr =
-  | BoolOp of boolop * expr list
+  | BoolOp of expr * boolop * expr
   | BinOp of expr * operator * expr
-  | UnaryOp of unaryop * expr 
   | Dict of expr list * expr list
   | Compare of expr * cmpop * expr
   | Call of identifier * identifier * arguments
@@ -81,6 +80,7 @@ and excepthandler =
 	| ExceptHandler of expr option * expr option * stmt list
 
 and arguments = expr list
+
 
 and number =
   | Int of int

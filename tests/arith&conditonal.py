@@ -1,55 +1,35 @@
-a = 1 + 2
+print(1 + 2)
 
-print(a)
+print(1 - 2)
 
-a = 1 - 2
+print(2 ** 25)
 
-print(a)
+print(100/4)
 
-a = 2 ** 25
+print(10%4)
 
-print(a)
+print([1,2] + [3,4])
 
-a = 100/4
+print("string 1 " + " string 2")
 
-print(a)
+print(5 == 5)
 
-a = 10%4
+print(5 >= 5)
 
-print(a)
+print(5 <= 5)
 
+print(5 < 7)
 
-a = [1,2] + [3,4]
+print(5 > 7)
 
-print(a)
-
-a = "string 1 " + " string 2"
-
-print(a)
-
-a = 5 == 5
-
-print(a)
-
-a = 5 >= 5
-
-print(a)
-
-a = 5 <= 5
-
-print(a)
-
-a = 5 < 7
-
-print(a)
-
-a = 5 > 7
-
-print(a)
+print(True and False)
+print(True or False)
+print(True and True)
+print(False or False)
 
 
 
 
 
 print("Should raise error ==>")
-a = 3 / 0
+print(3 / 0)
