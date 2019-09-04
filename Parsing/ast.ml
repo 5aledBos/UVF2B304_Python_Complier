@@ -6,9 +6,7 @@
 type identifier = string
 
 type modul = 
-	| Module of stmt list
-	| Interactive of stmt list
-	| Expression of expr list
+	| Module of stmt list (* not used because import is not implemented ; the interpreter takes a list of statement as an argument*)
 
 and stmt =
   	| FunctionDef of identifier * identifier list * stmt list
@@ -18,35 +16,24 @@ and stmt =
   	| AugAssign of expr * operator * expr
 
   	| Print of expr
-  	| For of expr * expr * stmt list * stmt list
+  	| For of identifier * expr * stmt list
   	| While of  expr * stmt list * stmt list 
   	| If of expr * stmt list * stmt list 
 
   	| Expr of expr
-    	| Pass  
-  	| Break 
-	| Continue 
 
 and expr =
   | BoolOp of boolop * expr list
   | BinOp of expr * operator * expr
   | UnaryOp of unaryop * expr 
-  | Lambda of arguments * expr
-  | IfExp of expr * expr * expr
   | Dict of expr list * expr list
-  | ListComp of expr * comprehension list
-  | GeneratorExp of expr * comprehension list
-  | Yield of expr option
   | Compare of expr * cmpop * expr
   | Call of identifier * identifier * arguments
-  | Repr of expr
   | Num of number
   | Str of string
-  | Attribute of expr * identifier * expr_context
-  | Subscript of expr * slice * expr_context
+  | Bool of bool
   | Name of identifier * expr_context
   | List of expr list * expr_context
-  | Tuple of expr list * expr_context
 
 and expr_context = 
 	| Load 
@@ -56,11 +43,6 @@ and expr_context =
 	| AugStore 
 	| Param
 
-and slice =
-  | Ellipsis
-  | Slice of expr option * expr option * expr option
-  | ExtSlice of slice list
-  | Index of expr
 
 and boolop = 
 	| And 
@@ -74,12 +56,6 @@ and operator =
 	| Div 
 	| Mod 
 	| Pow 
-	| LShift
-    	| RShift 
-	| BitOr 
-	| BitXor 
-	| BitAnd 
-	| FloorDiv
 
 and unaryop = 
 	| Invert 
@@ -99,16 +75,12 @@ and cmpop =
 	| In 
 	| NotIn
 
-and comprehension = expr * expr * expr list 
+
 
 and excepthandler = 
 	| ExceptHandler of expr option * expr option * stmt list
 
 and arguments = expr list
-
-and keyword =  identifier * expr
-
-and alias = identifier * identifier option
 
 and number =
   | Int of int
@@ -118,6 +90,4 @@ and number =
 
 let name_of_mod = function
   | Module _      -> "Module"
-  | Interactive _ -> "Interactive"
-  | Expression _  -> "Expression"
 

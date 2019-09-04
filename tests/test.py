@@ -1,15 +1,38 @@
-from module import SuperClass
+class MyClass2:
 
-class LexerTestClassBasicKeywords(SuperClass):
-	def __init__(self, int_val, string_val):
-		self.int_val = int_val
-		self.short_string_val = string_val
+    def __init__(x,y):
+	i = x
+	j = y
 
-	def addition(self, a):
-		return a + self.int_val
-
-	def concat(self, text1, text2):
-		return text1 + text2
+    def getI():
+        return i
 
 
+    def setI(v):
+	i = v
+
+    def getJ():
+	return j
+
+    def setJ(y):
+	j = y
+	
+
+def compare_objects(obj1, obj2):
+	if  obj1.getI() != obj2.getI() :
+		return False
+	if obj1.getJ() != obj2.getJ() :
+		return False
+	return True
+
+
+a = MyClass2(0, 0)
+b = MyClass2(0, 0)
+print(compare_objects(a,b))
+
+
+
+a.setI(5)
+
+print(compare_objects(a,b))
 
