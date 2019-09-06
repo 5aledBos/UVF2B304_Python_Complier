@@ -42,12 +42,6 @@
 
 
 %token  EQ             /* = */
-%token  ADDEQ          /* += */
-%token  SUBEQ          /* -= */
-%token  MULTEQ         /* *= */
-%token  DIVEQ          /* /= */
-%token  MODEQ          /* %= */
-%token  POWEQ          /* **= */
 
 
 %token  EQUAL          /* == */

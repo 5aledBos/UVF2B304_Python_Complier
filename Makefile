@@ -1,2 +1,2 @@
 compile:
-	ocamlbuild -use-menhir Parsing/main.native
+	ocamlbuild -use-menhir src/main.native

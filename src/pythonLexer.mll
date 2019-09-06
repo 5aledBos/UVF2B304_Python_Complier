@@ -75,12 +75,6 @@ let print_token = function
 	| POWER						-> print_string "< power >"
 	| EQ						-> print_string "< eq >"
 
-	| ADDEQ						-> print_string "< addeq >"
-	| SUBEQ						-> print_string "< MINUSeq >"
-	| MULTEQ					-> print_string "< multeq >"
-	| DIVEQ						-> print_string "< diveq >"
-	| MODEQ						-> print_string "< modeq >"
-	| POWEQ						-> print_string "< powerq >"
 
 	| EQUAL						-> print_string "< equal >"
 	| NOTEQ						-> print_string "< noteq >"
@@ -184,13 +178,6 @@ and _token state = parse
         | _          -> NAME (id) }
 
   (* symbols *)
-  | "+="    { ADDEQ }
-  | "-="    { SUBEQ  }
-  | "*="    { MULTEQ }
-  | "/="    { DIVEQ  }
-  | "%="    { MODEQ  }
-  | "**="   { POWEQ  }
-
 
   | "=="    { EQUAL }
   | "!="    { NOTEQ }
