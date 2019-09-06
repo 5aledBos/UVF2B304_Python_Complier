@@ -52,6 +52,8 @@ let print_token = function
 	| NAME id           				-> print_string "(ident : "; print_string id; print_string ")"
 	| INTEGERLIT i					-> print_string "(int : "; print_int i; print_string ")"
 	| STRINGLIT s					-> print_string "(string : "; print_string s; print_string ")"
+	| BOOLEANLIT true				-> print_string "< True >";
+	| BOOLEANLIT false				-> print_string "< False >";
 	| INDENT					-> print_string "< indent >"
 	| DEDENT					-> print_string "< dedent >"
 	| CLASS						-> print_string "< class >"

@@ -40,6 +40,10 @@ let get_value = function
 	| Vint s -> string_of_int s
 	| _ -> "Can't get Value"
 
+let get_int_value = function
+	| Vint n -> n
+	| _ -> error ("integer expected")
+
 let rec compare_list a1 n1 a2 n2 i =
   if i = n1 && i = n2 then 0
   else if i = n1 then -1
@@ -100,7 +104,6 @@ type object_ = {
 let global_objects = (Hashtbl.create 16 : (string, object_) Hashtbl.t)
 
 
-let classes = (Hashtbl.create 16 : (string, clazz) Hashtbl.t)
 
 
 	
@@ -110,7 +113,10 @@ let rec expr global_ctx clazz = function
 	| Str(s) -> Vstring s
 	| Num(Int s) -> Vint s
 	| Bool(s) -> Vbool s
-	| BinOp(e1, op , e2) -> binop_value op (expr global_ctx clazz e1) (expr global_ctx clazz e2)
+	| BinOp(e1, op , e2) ->
+				let v1 = (expr global_ctx clazz e1) in
+				let v2 = (expr global_ctx clazz e2) in
+				binop_value op v1 v2
 	| BoolOp(e1, And, e2) ->
 				let v1 = expr global_ctx clazz e1 in
 				if is_true v1 then expr global_ctx clazz e2 else v1
@@ -118,7 +124,17 @@ let rec expr global_ctx clazz = function
 				let v1 = expr global_ctx clazz e1 in
 				if is_false v1 then expr global_ctx clazz e2 else v1
 	| Compare(e1, op, e2) -> 
-				comop_value op (expr global_ctx clazz e1) (expr global_ctx clazz e2)
+				let v1 = (expr global_ctx clazz e1) in
+				let v2 = (expr global_ctx clazz e2) in
+				comop_value op  v1 v2
+	| Call("len", "len", [e]) ->
+				begin match expr global_ctx clazz e with
+        				| Vstring s -> Vint (String.length s)
+        				| Vlist l -> Vint (Array.length l)
+					| _ -> error "'len' unapplicable on this variable" end
+	| Call("range","range", [e]) -> 
+				let l = get_int_value (expr global_ctx clazz e) in
+				Vlist (Array.init (max 0 l) (fun i -> Vint i))
 	| Call(className, functionName, arguments) -> 
 			 	if className <> functionName
 			 	then 
@@ -159,6 +175,7 @@ let rec expr global_ctx clazz = function
  				else error ("function or Constructor : "^className^" is not a member of "^clazz.name)
 
 	| Name(s,param) -> 
+				(*print_endline s;*)
 				let sl = String.split_on_char '.' s in
 				if Hashtbl.mem clazz.attributes s = true
 				then Hashtbl.find clazz.attributes s
@@ -183,9 +200,47 @@ and obj_expr global_ctx obj = function
 	| BinOp(e1, op , e2) -> binop_value op (obj_expr global_ctx obj e1) (obj_expr global_ctx obj e2)
 	| Compare(e1, op, e2) -> 
 				comop_value op (obj_expr global_ctx obj e1) (obj_expr global_ctx obj e2)
+	| BoolOp(e1, And, e2) ->
+				let v1 = obj_expr global_ctx obj e1 in
+				if is_true v1 then obj_expr global_ctx obj e2 else v1
+	| BoolOp(e1, Or, e2) -> 
+				let v1 = obj_expr global_ctx obj e1 in
+				if is_false v1 then obj_expr global_ctx obj e2 else v1
 	| List(e, param) ->
 				Vlist (Array.of_list (List.map (obj_expr global_ctx obj) e))
-	| Call(className, functionName, arguments) -> Vint 1 (** TODO : Use Objects Everywhere !! Clean Code !! And that's it :) **)
+	| Call("len", "len", [e]) ->
+				begin match obj_expr global_ctx obj e with
+        				| Vstring s -> Vint (String.length s)
+        				| Vlist l -> Vint (Array.length l)
+					| _ -> error "'len' unapplicable on this variable" end
+	| Call("range","range", [e]) -> 
+				let l = get_int_value (obj_expr global_ctx obj e) in
+				Vlist (Array.init (max 0 l) (fun i -> Vint i))
+	| Call(className, functionName, arguments) -> if className <> functionName then
+							if Hashtbl.mem obj.objAttributes className = true then
+								let objName = Hashtbl.find obj.objAttributes className in
+								let obj = Hashtbl.find global_objects (get_value objName) in
+								let targetClass = Hashtbl.find global_ctx obj.className in
+							 	if Hashtbl.mem targetClass.methods functionName = true then
+									let args, body = Hashtbl.find targetClass.methods functionName in
+									if List.length args <> List.length arguments then error ("wrong number of arguments passed to the function : "^functionName^" of the class : "^obj.className);
+					 				List.iter2 (fun x e -> Hashtbl.replace obj.objAttributes x (expr global_ctx targetClass e)) args arguments;
+									begin try List.iter (obj_stmt global_ctx obj) body; Vnone with Return v -> v end
+									(** TODO :: delete function local attributes from class contexte after running statements **)	
+								else
+									error ("Unbound Function : "^functionName^" with class : "^obj.className)
+							else
+								error("Uknown attribute")
+						     else if Hashtbl.mem (Hashtbl.find global_ctx obj.className).methods functionName = true then
+							let targetClass = Hashtbl.find global_ctx obj.className in
+							let args, body = Hashtbl.find targetClass.methods functionName in
+							if List.length args <> List.length arguments then error ("wrong number of arguments passed to the function : "^functionName);
+							List.iter2 (fun x e -> Hashtbl.add obj.objAttributes x (expr global_ctx targetClass e)) args arguments;
+							begin try List.iter (obj_stmt global_ctx obj) body; Vnone with Return v -> v end
+						     else
+								error (functionName^" is not a member of class : "^obj.className)
+							
+							 
 	| _ -> Vnone
 
 

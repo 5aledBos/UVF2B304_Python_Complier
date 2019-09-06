@@ -17,7 +17,8 @@ class MyClass:
 	def run():
 		print("start run with attr1 = " + attr1)
 		for i in attr2:
-			if  i%2 == 0 :
+			c = i%2
+			if  c == 0 :
 				print(i*attr1)
 		print("end run")
 
@@ -32,3 +33,4 @@ a.setAttr1(7)
 a.run()
 
 b.run()
+

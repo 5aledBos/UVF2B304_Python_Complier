@@ -21,3 +21,6 @@ print(if_stmt(False, True))
 
 for i in [0, 1, 2, 3, 5] : 
 	print(i**2)
+
+for i in range(5):
+	print(i**i)

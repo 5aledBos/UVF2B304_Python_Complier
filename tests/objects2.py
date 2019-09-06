@@ -16,15 +16,13 @@ class MyClass2:
 
     def setJ(y):
 	j = y
+
+    def compare(obj):
+	return obj.getI() == i and obj.getJ() == j
 	
 
 def compare_objects(obj1, obj2):
-	if  obj1.getI() != obj2.getI() :
-		return False
-	if obj1.getJ() != obj2.getJ() :
-		return False
-	return True
-
+	return obj1.getI() == obj2.getI() and obj1.getJ() == obj2.getJ()
 
 a = MyClass2(0, 0)
 b = MyClass2(0, 0)
@@ -35,4 +33,6 @@ print(compare_objects(a,b))
 a.setI(5)
 
 print(compare_objects(a,b))
+
+print(a.compare(b))
 

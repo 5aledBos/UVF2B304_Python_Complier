@@ -26,6 +26,8 @@
 %token  IN
 %token  PRINT
 %token  RETURN
+%token  AND
+%token  OR
 
 
 
@@ -116,10 +118,12 @@ expr :
 	| conditional_expr { $1 }
 
 arith_expr:
-	| expr bin_operators test {BinOp($1,$2,$3)}
+	| test bin_operators expr { BinOp($1,$2,$3) }
+
 
 conditional_expr:
-	| expr comp_operators expr {Compare($1, $2, $3)}
+	| test comp_operators expr { Compare($1, $2, $3) }
+	| test bool_operators expr { BoolOp($1, $2, $3) }
 
 call :
 	| name LPAREN separated_list(COMMA, test) RPAREN { Call($1, $1, $3) }
@@ -152,8 +156,8 @@ for_stmt:
 	| FOR name IN test COLON suite { For($2, $4, $6)}
 
 if_stmt:
-	| IF conditional_expr COLON suite { If($2, $4, []) }
-	| IF conditional_expr COLON suite ELSE COLON suite { If($2, $4, $7) } 
+	| IF expr COLON suite { If($2, $4, []) }
+	| IF expr COLON suite ELSE COLON suite { If($2, $4, $7) } 
 
 classdef:
 	| CLASS name COLON suite { ClassDef($2, $4) }
@@ -198,4 +202,8 @@ comp_operators:
 	| GEQ   { GtE }
 	| LT    { Lt }
 	| GT    { Gt }
+
+bool_operators:
+	| AND { And }
+	| OR { Or }
 
